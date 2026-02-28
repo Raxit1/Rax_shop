@@ -79,64 +79,26 @@ conn.close()
 def login():
     return render_template("login.html")
 
-import re
+@app.route("/register")
+def register():
+    return render_template("register.html")
 
 @app.route("/register_user", methods=["POST"])
 def register_user():
     username = request.form["username"]
     email = request.form["email"]
     MobileNo = request.form["MobileNo"]
-    password = request.form["password"]
-
-    # Email validation
-    email_pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
-    if not re.match(email_pattern, email):
-        return "Invalid Email! Please enter a valid email address."
-
-    # Hash password
-    hashed_password = generate_password_hash(password)
+    password = generate_password_hash(request.form["password"])
 
     conn = get_db()
-
-    # Check if email already exists
-    existing_user = conn.execute(
-        "SELECT * FROM users WHERE email = ?",
-        (email,)
-    ).fetchone()
-
-    if existing_user:
-        conn.close()
-        return "Email already registered!"
-
     conn.execute(
         "INSERT INTO users (username, email, MobileNo, password) VALUES (?, ?, ?, ?)",
-        (username, email, MobileNo, hashed_password)
+        (username, email, MobileNo, password)
     )
-
     conn.commit()
     conn.close()
 
     return redirect("/")
-# @app.route("/register")
-# def register():
-#     return render_template("register.html")
-
-# @app.route("/register_user", methods=["POST"])
-# def register_user():
-#     username = request.form["username"]
-#     email = request.form["email"]
-#     MobileNo = request.form["MobileNo"]
-#     password = generate_password_hash(request.form["password"])
-
-#     conn = get_db()
-#     conn.execute(
-#         "INSERT INTO users (username, email, MobileNo, password) VALUES (?, ?, ?, ?)",
-#         (username, email, MobileNo, password)
-#     )
-#     conn.commit()
-#     conn.close()
-
-#     return redirect("/")
 
 @app.route("/login_user", methods=["POST"])
 def login_user():
