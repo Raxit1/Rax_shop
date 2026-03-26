@@ -1,392 +1,670 @@
-{% extends "base.html" %}
-
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f5f5f5;
-    }
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+  }
 
-    h2 {
-        text-align: center;
-        margin: 30px 0;
-        color: #333;
-        font-size: 2.5em;
-    }
+  .items {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
 
-    .items {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px;
-    }
+  .categories h3 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+    font-size: 1.8em;
+  }
 
-    .categories h3 {
-        text-align: center;
-        margin-bottom: 30px;
-        color: #333;
-        font-size: 1.8em;
-    }
+  .products-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    padding: 20px;
+  }
 
-    .products-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 25px;
-        padding: 20px;
-    }
+  .product-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
 
-    .product-card {
-        background: white;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
+  .product-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
+  }
 
-    .product-card:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
-    }
+  .product-image {
+    width: 100%;
+    height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #84fab0, #8fd3f4);
+    overflow: hidden;
+  }
 
-    .product-image {
-        width: 100%;
-        height: 250px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, #84fab0, #8fd3f4);
-        overflow: hidden;
-    }
+  .product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 
-    .product-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
+  .product-info {
+    padding: 20px;
+    text-align: center;
+  }
 
-    .product-info {
-        padding: 20px;
-        text-align: center;
-    }
+  .product-name {
+    font-size: 1.3em;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 10px;
+  }
 
-    .product-name {
-        font-size: 1.3em;
-        font-weight: 600;
-        color: #333;
-        margin-bottom: 10px;
-    }
+  .product-price {
+    font-size: 1.5em;
+    color: #27ae60;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
 
-    .product-price {
-        font-size: 1.5em;
-        color: #27ae60;
-        font-weight: bold;
-        margin-bottom: 15px;
-    }
+  .product-button {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s;
+  }
 
-    .product-button {
-        width: 100%;
-        padding: 10px;
-        background: linear-gradient(135deg, #84fab0, #8fd3f4);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: 0.3s;
-    }
+  .product-button:hover {
+    transform: scale(1.05);
+  }
 
-    .product-button:hover {
-        transform: scale(1.05);
-    }
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
 
-    .modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 999;
-    }
+  .modal-content {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+  }
 
-    .modal-content {
-        background: white;
-        padding: 40px;
-        border-radius: 12px;
-        width: 90%;
-        max-width: 600px;
-        max-height: 90vh;
-        overflow-y: auto;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 1000;
-    }
+  .close-btn {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 2em;
+    cursor: pointer;
+    background: none;
+    border: none;
+  }
 
-    .close-btn {
-        position: absolute;
-        right: 20px;
-        top: 20px;
-        font-size: 2em;
-        cursor: pointer;
-        color: #666;
-        background: none;
-        border: none;
-        transition: 0.3s;
-    }
+  .modal-image {
+    width: 100%;
+    height: 300px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    object-fit: cover;
+  }
 
-    .close-btn:hover {
-        color: #e84545;
-    }
+  .modal-title {
+    font-size: 2em;
+    color: #2c3e50;
+    margin-bottom: 10px;
+  }
 
-    .modal-image {
-        width: 100%;
-        height: 300px;
-        border-radius: 12px;
-        margin-bottom: 20px;
-        object-fit: cover;
-    }
+  .modal-price {
+    font-size: 1.8em;
+    color: #27ae60;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
 
-    .modal-title {
-        font-size: 2em;
-        color: #2c3e50;
-        margin-bottom: 10px;
-    }
+  .modal-section {
+    margin: 20px 0;
+  }
 
-    .modal-price {
-        font-size: 1.8em;
-        color: #27ae60;
-        font-weight: bold;
-        margin-bottom: 15px;
-    }
+  .modal-section h4 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+  }
 
-    .modal-section {
-        margin: 20px 0;
-    }
+  .modal-section ul {
+    list-style: none;
+    padding: 0;
+  }
 
-    .modal-section h4 {
-        color: #2c3e50;
-        margin-bottom: 10px;
-    }
+  .modal-section li {
+    padding: 8px 0;
+    color: #666;
+  }
 
-    .modal-section ul {
-        list-style: none;
-        padding: 0;
-    }
+  .modal-section li:before {
+    content: "✓ ";
+    color: #27ae60;
+    font-weight: bold;
+    margin-right: 10px;
+  }
 
-    .modal-section li {
-        padding: 8px 0;
-        color: #666;
-    }
+  .modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 30px;
+  }
 
-    .modal-section li:before {
-        content: "✓ ";
-        color: #27ae60;
-        font-weight: bold;
-        margin-right: 10px;
-    }
+  .modal-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s;
+  }
 
-    .modal-actions {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-top: 30px;
-    }
+  .modal-btn-primary {
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    color: white;
+  }
 
-    .modal-btn {
-        padding: 12px 20px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: 0.3s;
-    }
+  .modal-btn-secondary {
+    background: #f0f0f0;
+    color: #2c3e50;
+  }
 
-    .modal-btn-primary {
-        background: linear-gradient(135deg, #84fab0, #8fd3f4);
-        color: white;
-    }
-
-    .modal-btn-primary:hover {
-        transform: scale(1.05);
-    }
-
-    .modal-btn-secondary {
-        background: #f0f0f0;
-        color: #2c3e50;
-    }
-
-    .modal-btn-secondary:hover {
-        background: #e0e0e0;
-    }
-
-    .rating {
-        color: #ffc107;
-        font-size: 1.1em;
-        margin-bottom: 10px;
-    }
+  .rating {
+    color: #ffc107;
+    font-size: 1.1em;
+    margin-bottom: 10px;
+  }
 </style>
+
 <div class="items">
-    <div class="categories">
-        <h3>Fresh Groceries</h3>
-        <div class="products-container">
-            
-            <div class="product-card" onclick="openModal('apple1', 'https://www.shutterstock.com/image-photo/red-apple-cut-half-water-260nw-2532255795.jpg', 'Fresh Apples (1kg)', 4.99, '⭐⭐⭐⭐⭐ (4.8/5)', 'Fresh, crisp apples for healthy eating', ['Organic', 'Fresh Picked', 'Rich in Fiber', 'High Vitamin C', 'No Pesticides', 'Long Shelf Life'])">
-                <div class="product-image"><img src="https://www.shutterstock.com/image-photo/red-apple-cut-half-water-260nw-2532255795.jpg" alt="Fresh Apples"></div>
-                <div class="product-info">
-                    <div class="product-name">Fresh Apples (1kg)</div>
-                    <div class="product-price">$4.99</div>
-                    <button class="product-button" onclick="event.stopPropagation(); addToCart('apple1', 'Fresh Apples (1kg)', 4.99, 'Grocery')">Add to Cart</button>
-                </div>
-            </div>
-
-            
-            <div class="product-card" onclick="openModal('carrot1', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSwK8JQrdI0eDduUc8sDuYrBxNl8mHZ05sZeA&s', 'Organic Carrots (500g)', 2.99, '⭐⭐⭐⭐ (4.6/5)', 'Crunchy organic carrots for cooking', ['100% Organic', 'Fresh Quality', 'Rich Taste', 'High Beta-Carotene', 'Farm Fresh', 'No Chemicals'])">
-                <div class="product-image"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSwK8JQrdI0eDduUc8sDuYrBxNl8mHZ05sZeA&s" alt="Organic Carrots"></div>
-                <div class="product-info">
-                    <div class="product-name">Organic Carrots (500g)</div>
-                    <div class="product-price">$2.99</div>
-                    <button class="product-button" onclick="event.stopPropagation(); addToCart('carrot1', 'Organic Carrots (500g)', 2.99, 'Grocery')">Add to Cart</button>
-                </div>
-            </div>
-
-           
-            <div class="product-card" onclick="openModal('broccoli1', 'https://media.istockphoto.com/id/1364035705/photo/fresh-broccoli-on-white-background.jpg?s=612x612&w=0&k=20&c=fEcEq65rKBmT8PltpAyg_-na0WomTJ6S6m04uXQQtJs=', 'Fresh Broccoli (1 head)', 3.49, '⭐⭐⭐⭐⭐ (4.7/5)', 'Green fresh broccoli for healthy meals', ['Nutrient Dense', 'Fresh Picked', 'Rich in Vitamins', 'High Fiber', 'Perfect for Cooking', 'Long Lasting'])">
-                <div class="product-image"><img src="https://media.istockphoto.com/id/1364035705/photo/fresh-broccoli-on-white-background.jpg?s=612x612&w=0&k=20&c=fEcEq65rKBmT8PltpAyg_-na0WomTJ6S6m04uXQQtJs=" alt="Fresh Broccoli"></div>
-                <div class="product-info">
-                    <div class="product-name">Fresh Broccoli (1 head)</div>
-                    <div class="product-price">$3.49</div>
-                    <button class="product-button" onclick="event.stopPropagation(); addToCart('broccoli1', 'Fresh Broccoli (1 head)', 3.49, 'Grocery')">Add to Cart</button>
-                </div>
-            </div>
-
-        
-            <div class="product-card" onclick="openModal('tomato1', 'https://media.istockphoto.com/id/831570242/photo/three-juicy-red-tomatoes-isolated-on-white-background.jpg?s=612x612&w=0&k=20&c=bBrjZsWY4eg90OpA2S6cO3psGR1TFx8f4L0HAmIQqm4=', 'Fresh Tomatoes (1kg)', 3.99, '⭐⭐⭐⭐⭐ (4.8/5)', 'Garden fresh organic tomatoes', ['100% Organic', 'Farm Fresh', 'Rich Red Color', 'Perfect Ripeness', 'No Pesticides', 'Great Flavor'])">
-                <div class="product-image"><img src="https://media.istockphoto.com/id/831570242/photo/three-juicy-red-tomatoes-isolated-on-white-background.jpg?s=612x612&w=0&k=20&c=bBrjZsWY4eg90OpA2S6cO3psGR1TFx8f4L0HAmIQqm4=" alt="Fresh Tomatoes"></div>
-                <div class="product-info">
-                    <div class="product-name">Fresh Tomatoes (1kg)</div>
-                    <div class="product-price">$3.99</div>
-                    <button class="product-button" onclick="event.stopPropagation(); addToCart('tomato1', 'Fresh Tomatoes (1kg)', 3.99, 'Grocery')">Add to Cart</button>
-                </div>
-            </div>
-
-            
-            <div class="product-card" onclick="openModal('banana1', 'https://5.imimg.com/data5/SELLER/Default/2022/12/EK/NP/CN/49293026/fresh-banana-fruit.webp', 'Fresh Bananas (1 bunch)', 2.49, '⭐⭐⭐⭐⭐ (4.9/5)', 'Yellow ripe fresh bananas', ['Rich in Potassium', 'Sweet Taste', 'High Energy', 'Natural Sugars', 'Perfect Yellow', 'Best Bunch'])">
-                <div class="product-image"><img src="https://5.imimg.com/data5/SELLER/Default/2022/12/EK/NP/CN/49293026/fresh-banana-fruit.webp" alt="Fresh Bananas"></div>
-                <div class="product-info">
-                    <div class="product-name">Fresh Bananas (1 bunch)</div>
-                    <div class="product-price">$2.49</div>
-                    <button class="product-button" onclick="event.stopPropagation(); addToCart('banana1', 'Fresh Bananas (1 bunch)', 2.49, 'Grocery')">Add to Cart</button>
-                </div>
-            </div>
-
-            
-            <div class="product-card" onclick="openModal('lemon1', 'https://media.istockphoto.com/id/466175634/photo/lemon-fruit-with-half-and-leaves-isolated-on-white.jpg?s=612x612&w=0&k=20&c=yRkrtlYtXd1O2EsPaxzOI1TSJOQ3kaf8XUzPe1ODoOo=', 'Fresh Lemon (1 piece)', 1.99, '⭐⭐⭐⭐⭐ (4.7/5)', 'Juicy fresh lemon', ['Citrusy Taste', 'High Vitamin C', 'Natural Juice', 'Perfect for Drinks', 'Organic Quality', 'Freshly Picked'])">
-                <div class="product-image"><img src="https://media.istockphoto.com/id/466175634/photo/lemon-fruit-with-half-and-leaves-isolated-on-white.jpg?s=612x612&w=0&k=20&c=yRkrtlYtXd1O2EsPaxzOI1TSJOQ3kaf8XUzPe1ODoOo=" alt="Fresh Lemon"></div>
-                <div class="product-info">
-                    <div class="product-name">Fresh Lemon  (1 head)</div>
-                    <div class="product-price">$2.29</div>
-                    <button class="product-button" onclick="event.stopPropagation(); addToCart('lettuce1', 'Fresh Lettuce (1 head)', 2.29, 'Grocery')">Add to Cart</button>
-                </div>
-            </div>
-
-            
-            <div class="product-card" onclick="openModal('pepper1', 'https://media.istockphoto.com/id/1130564105/photo/sweet-pepper-paprika-isolated-on-white-background-clipping-path-full-depth-of-field.jpg?s=612x612&w=0&k=20&c=m_01GdGMntpr6B3tiplqxbtPN8zTKN1xfucAaBu3Mkw=', 'Bell Peppers (3 pack)', 4.49, '⭐⭐⭐⭐⭐ (4.8/5)', 'Colorful fresh bell peppers', ['Mixed Colors', 'Sweet Flavor', 'Crunchy Fresh', 'Vitamin C Rich', 'Perfect for Cooking', 'Organic Quality'])">
-                <div class="product-image"><img src="https://media.istockphoto.com/id/1130564105/photo/sweet-pepper-paprika-isolated-on-white-background-clipping-path-full-depth-of-field.jpg?s=612x612&w=0&k=20&c=m_01GdGMntpr6B3tiplqxbtPN8zTKN1xfucAaBu3Mkw=" alt="Bell Peppers"></div>
-                <div class="product-info">
-                    <div class="product-name">Bell Peppers (3 pack)</div>
-                    <div class="product-price">$4.49</div>
-                    <button class="product-button" onclick="event.stopPropagation(); addToCart('pepper1', 'Bell Peppers (3 pack)', 4.49, 'Grocery')">Add to Cart</button>
-                </div>
-            </div>
-
-            
-            <div class="product-card" onclick="openModal('spinach1', 'https://m.media-amazon.com/images/I/71tdN2taTCL.jpg', 'Fresh Spinach (250g)', 3.29, '⭐⭐⭐⭐⭐ (4.7/5)', 'Nutritious fresh spinach leaves', ['High Iron', 'Antioxidants', 'Dark Green Color', 'Organic Grown', 'Tender Leaves', 'Perfect for Cooking'])">
-                <div class="product-image"><img src="https://m.media-amazon.com/images/I/71tdN2taTCL.jpg" alt="Fresh Spinach"></div>
-                <div class="product-info">
-                    <div class="product-name">Fresh Spinach (250g)</div>
-                    <div class="product-price">$3.29</div>
-                    <button class="product-button" onclick="event.stopPropagation(); addToCart('spinach1', 'Fresh Spinach (250g)', 3.29, 'Grocery')">Add to Cart</button>
-                </div>
-            </div>
+  <div class="categories">
+    <h3>Fresh Groceries</h3>
+    <div class="products-container">
+      <!-- Potato Product -->
+      <div
+        class="product-card"
+        onclick="
+          openModal(
+            'potato1',
+            'data:image/jpeg;base64,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',
+            'Fresh Potatoes (1kg)',
+            3.99,
+            '⭐⭐⭐⭐⭐ (4.7/5)',
+            'Fresh farm potatoes, perfect for cooking',
+            [
+              'Fresh Harvest',
+              'Rich in Potassium',
+              'Good for Curries',
+              'Long Shelf Life',
+              'High Quality',
+              'Farm Fresh',
+            ],
+          )
+        "
+      >
+        <div class="product-image">
+          <img
+            src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxMTEhUTEhEVFhUWFRYXFRUXEhUVFRcVFRUXFhUXFRYYHSggGBolHRUVITEhJSkrLi4uFx8zODMtNygtLisBCgoKDg0OGhAQGysdHx4tLS0tKy0tLS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0rLS0tLS0tLS0tLTc3Lf/AABEIAOEA4QMBIgACEQEDEQH/xAAbAAEAAgMBAQAAAAAAAAAAAAAAAwQCBQYBB//EADgQAAIBAgQDBQUGBgMAAAAAAAABAgMRBCExQQUSUWFxgaGxBiKRwdETMkJS4fAVI2JygvEzkrL/xAAaAQEAAwEBAQAAAAAAAAAAAAAAAQIDBAUG/8QAJBEAAwACAgICAgMBAAAAAAAAAAECAxEEIRIxE0FRYRQiMgX/2gAMAwEAAhEDEQA/APuIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABFVrxiryditjseoZLXyRqpVuZ3bbZzZeTMdfZtjwuuzZz4mvwxb73Y8XE+sPMoxR7ynN/JtmvwybOnxCD1y7yypX0NBKJ5CvKH3X4bF55mv8ASIfH3/k6IGvwnE4yylk/Jl9M7IubW0c9S5emegAuVAAAAAAAAAAAAAAAAAAAAAAAAAAABBi63JCUui/0Tms9onbDz8P/AEilvUtlpW6SOfddybfUzg3fXI1+FrbXz6E0pNyS21b9EfOO902z2FK1o29OSM289e5dCCjoSm810YNdmckQy19STmIpVUTTQSIakbFzA8ScMpO8fNFGviYrWSXe0iFVovRoiMrxvaZasataZ2NKopJNO6ZmcxgsbKDyzW62/RnQ4bExmrxf1XeevgzzlX7PPy4nDJgAdBkAAAAAAAAAAAAAAAAAAAV8Riox1efRGsxGOlLTLsMsmaY9mkY6o21TERjq0V5cRjsm/I1PeJd5yVy39G646+zZ/wATX5X8SDiGLjOlONnnFpd9sjXVGVa2IsY1zK1pms8ZbNTh0tS/Bmv51zO2n1LFKqeRT7O/XRtMPULcZGupSLVHs31OjHRz3JNJmox6lzR5XpfL69htKiKSoPnb2sXpbEddmuoYObneWaNo8Nlksy1CJ63ZkLGkiayNlR07E2FxLg7x8e3vMpxILEzTh7RDStaZ0+DxSmrrxXQsHJYfFOErp+GzR02ExCnFNeK6Poezx+Qsi/Z52bE4f6JwAdJiAAAAAAAAAACDEYqMNX3LchtLtkpb9E0nY1uL4jtD4/QqYrFyqb2jsl83uV0jhy8r6k6ceD7ozbB4yJ1VscdUdKRK5ENaoYSqEU53MKs0mOzCvXNbiqhYqlSqc1UdEopOpZluEt+woYkYHE3916r0MNlzf4aeRdpTNPTnpYv0ahpF6M7k2hHToKOjdu133FGpclR2p7OV7RHTi03ndPayyJJSMZsip1L7NWe/qNk62Jwu9SOouhKyKd2UZZENWN0T8Mxrpy7N11IK1VR1dloQ1nZ3GPI4raLVKpaZ29KopJNaMzOc4FxCz5JaPTsZ0SZ72HKsk7R5WTG4rTPQAbGYAAAAPJMAqcRxypx7XovmaBV3N3bzZDxHF/aTffZdyPaWx4vJ5XnfivSPSw4VM7fstRstzJx3MO9CcjHyRfR45FepITqFecjKsn4NJk8jUed1bPKz2HOZQoN65epYw+GSz5c+t7ticdP2WdJGvqwk17sW/wB9SJ4Go/w+aN5BNaaHib3VvG5b4J+2V+VnNVuF1fyr4o1tbh1anLm+yk+vL72Xgdwle5jKldWf09Cj40/Rb5mcvh6uefnkbCFQ2VXDJ6pPvKVbA2zi/AxrBU+iyyJklCs7q3iX1Wsn9DTRm07PIu0a5aKIqUXIScle2feZcu5B9vZa5JX7l29hKqnMsnsjfpmLRhWjfLPwdvQJmPNkyJzM2y6R7V7SrUqaroTyqFebKbLIUavkddwbGfaQz1jk/kzjbGy4BX5KiW0sn46eZ38LK5vT+zm5OPynf4OwAB7Z5oAAAKXGK3LSk+y3xyLpqfaZ/wAn/JfMyzPWNv8ARfGt0kczB5l+jBPNrR5GqlUtmSrisUkfOwvs9euza3zZWq1COnjE1dMgxFTZalbe/QmdezGU23ZE8bRaWTb1/QigrLtM4QzuXmVHb9lm9lyDuTLK2tiCkTtG01sxaPORa6bsjabja+vxEZyu1Zcuzvm+t1seVJWu1/sVWgkS0o2Vm79rzYcynTxTazVs9NytWrLmTtna17mbyaLKDY1JkEpFd1rmG97vS1r5fDS5m8myynRBxB5Xzy9CHDqLleMs7eD3yZcqq6NXgacqdRw5f5b96LWz3i1st/Eskq9k7Zso17P3u4u0ayfQ12Kw7avutPmivhcTsUbcstraN1UqLTdkNSZDOq2snnsYuXV5kV2VRJOZWzuZTnmiJ1c7EJEk3MZ0Z2ZXZPTR0Y+mZ16O+oTvFPqk/iZlfAf8cP7V6Fg+in0jyH7AAJIBQ45S5qMuxX+Gf1L5jNXVmVufKWiZens+cYjPKxpcTgZX+877ZnU8QwLpVJL8OsX1TKFeCR89t46cs9iWqnaNZwqrZuEnmkm8766a9zNzKryrNrmaKeGw8VJzSz1fb09SadHm1Wb3KPp7Rouyeh7yumXaccirh4cqt+8i5TZn7ZDJ6SMqkkmk3m7+WZHKbirqLemXfqSVJZp+Rul0ZPtiSK1aZNOqs7FWpMytotKMZMq1IpZmU6xBOdzLyNDOdQxjVdtLdhE6n6BsjZJYUz2TKymSRkaSVMa1druNdWqWl35mxqWNfxOFop9H5P8AaLVPkiE9FmhW7c7E/MzXYWojY0syJlhsyi9j1RzWWu4jDq9yzy27jWI7KOipjanKsld3SLuCp3Uery8WYTpp5vNI3fA8LefNb3Y2/wCx1Ysbq0jLJfjOzoaUbJLokvgZhA9o8wAAAAAAp8RwKqxs9dn0/Q43iWAlB2lG3R7PuO+NXxWF8mrq2hx8njTk/t6Z0YMzjr6ONwdBqLvu/JL9SzCkkkkWalK2Wm5FRtI8XKnNaPTh7WzKnEniQSqJHjrLcp0S02XnWsr+hRrYlvTQVpFebLO3ohSkSOqYVJZETZ5cz0SRzv5nhK4mHIFI2Q8okrEqXUwckW8SNkNTQYZvcnjG5n9kXUkOiKTzNfx6ty0+vNJL5v0Nw6VzkvaaXPJOM7ct1bZvd+RvONtdFHRJhMRp9Tc4bEo4OlxDkfvM2VDjUfzL4lfBos3s7aNZd5reI4mUpqKk1FZ2WV+99Ow0sONp5J37jc8Iw8Zvmm2/6dPizaMbrpGbpLs6HgWFlWa5corWb9F1Z2uGoKEVGOi/d2c5galklHJLRLK3cdHhZNxTZ6eDGoRwZrdMmAB0GIAAAAAAIK+HUuxk4Ia2DneL4RxSltpfv0NXhoKOSWR2GKoKcXF6P9o5edJwk4y1X7ueL/0MDmvNemelxcvkvFmp4nw2VSpF8zUU75PcmrYbIv3IpnBs69lTDSfKriZMivXT2JSIZHJGC0z17BU7ev78D1l1JXZlc8Z5cOZfQMrZFR0c8vXRXLakjx1EPErsypQsiSKKksUloZQnfVm+PG6ZSq0VeLYtpOML3er6LsOUxNKT1R2/2CZlHhSex2rFpGLv8nztcHUupdwvs1Hoj6DR4JHobDD8GXQlYSrynE4L2eS2Oi4fwmx0lHhVti/SwKWprOHRlWUocOwPXQ3SVjyEEtDI6EtGDewACSAAAAAAAAADxmq41RUl0ktH8n2G1Zq8bm2ZZpVTpmmN6raOalWs7PJ+T7jz7Qs43CcxpcRSqx+7n3ni5OK0/wCp6U5U/Zec+0hq1F1NHXxGJWkIv4mur1MZLRRX+LfzKLDRd2jo6mIRBUx0VuctPhmLn96rJf2+76GVL2YqvWc3/k/qbLAyrtG9fE83ovHUiq8cpx+9NfEpQ9j7/eu+9tl7C+x0F+FF1xyjyorfx5S+4m/CyMoYipLs7jfYX2bitjaYfgi6Gk8co8pzWHoS7TYUMLI6ehwV/lL1Lg/Wx0ThZjWVHP4XCM2+EwrextaXD4rtLUYJaI6Jx6MaybK9DBpa5ssRiloZA00ZbAAJAAAAAAAAAAAAAAAAIK+HUicENbBrKnDXtYglwyXT0N0CjxyXWSjn5cJf5DH+DP8AIdECPikn5aOeXBv6fQlhwf8Ap80bwE/FJHyUamHCe4mhwyKNgCfBEeTK8MHBbEsaaWiMwW0iNgAEkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAH//2Q=="
+            alt="Fresh Potatoes"
+          />
         </div>
+        <div class="product-info">
+          <div class="product-name">Fresh Potatoes (1kg)</div>
+          <div class="product-price">$3.99</div>
+          <button
+            class="product-button"
+            onclick="
+              event.stopPropagation();
+              addToCart('potato1', 'Fresh Potatoes (1kg)', 3.99, 'Grocery');
+            "
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+
+      <!-- Apple Product -->
+      <div
+        class="product-card"
+        onclick="
+          openModal(
+            'apple1',
+            'data:image/jpeg;base64,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',
+            'Fresh Apples (1kg)',
+            4.99,
+            '⭐⭐⭐⭐⭐ (4.8/5)',
+            'Fresh, crisp apples for healthy eating',
+            [
+              'Organic',
+              'Fresh Picked',
+              'Rich in Fiber',
+              'High Vitamin C',
+              'No Pesticides',
+              'Long Shelf Life',
+            ],
+          )
+        "
+      >
+        <div class="product-image">
+          <img
+            src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxMTEhUSExMVFhUVFhYYFhgYGBcYFhcXFxYYFxcaGBcdHSggGB0lGxUXITEhJSkrLi4uFx8zODMtNygtLisBCgoKDg0OGxAQGy4lICUtLS0tLS0tLSstLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLy0tLS0tLS0tLS0tLS0tLf/AABEIAMMBAgMBIgACEQEDEQH/xAAcAAABBQEBAQAAAAAAAAAAAAAAAwQFBgcCAQj/xABDEAABAwIDBAcHAgMGBQUAAAABAAIRAyEEMUEFBhJRImFxgZGhsQcTMkLB0fBS8XKS4RQjQ2KiwnOCk7LSFRckU4P/xAAaAQADAQEBAQAAAAAAAAAAAAAAAgMEAQUG/8QALxEAAgIBBAEDAwIFBQAAAAAAAAECAxEEEiExQQUTURQiYTJxFYGRocEjUrHR4f/aAAwDAQACEQMRAD8A3FCEIAEIQgAQhCABCEIAEIQgAQhCABCEIAEIQgAQhCABCh96cfUoUDVph7uG7gxnG6OfDyGsXhebsbfZi6XE0jiAHEB6j7aEEJd63bR9j27iZQhCYQEIQgAQhCABCEIAEIQgAQhCABCEIAEIQgAQhCABCEIAEIQgATPam06eHaH1XcLS4NB5uMwPIp4qB7aq/DgGtmC+swDua9x9PNLN4WUNBZkkXXZ+PZWbxsMiYlOlWtzsDTwOzqQeQyGCpVcbdN/SdPM3De4KNxu/XFIoMto5+Z7GjLvPco2aiFUVvfJyWM8F3QswxW8eIdnVcJ5dH0hN2bcrtyqvnrcSPNZP4nDPEWLk1dCoOy9+y3o128Q/U2zu8ZHyVx2XtWjiG8dJ4cNRqO0ZhbKtRXb+lnR6hCFcAVM3k2Q7DVP/AFDCiCDNemPhe35nADWM/HMXua8ISyjuWB67HB5Q22Zj2V6TK1My14kdXMHrBkdydKm7DacFjqmD/wACuDVocmu+Zg/Mg3mrLtLa1CgJrVGs5Am57Gi5XIy45GnX92Ic56HqFU63tCwYy96/rayB/qIXuH9oWCdm6oz+Jh/2yj3I/JT6LUYzsf8AQtaFXaO++BcY9/H8TXgeJCm8Li6dQcVN7Xjm0gjyTKSfTJTpsh+qLX7oXQhC6TBCEIAEIQgAQhCABCEIAEIQgAQheEoA9QhcveACSQAMybAd6AOlmntdcalbZ+GiRVquDhfV1Jgyv87vBWzFb6YCmYdiqcj9Mv8A+0FUXbm38Nidr4Go2qz3FISXuljQ4cboPEBF20/FSsaawa6aLE9zi8Yfh/BYd9cE5/Ayo97mthwiGiTIuBYxHmqe3CR8Lu4iD9lf96a1OpSbVpVGPDTDuFwcIdkbHmB/Mqo6mLnvXi6ytq14/wCzHLKfJFVQ5vxNPbp4pF7uSsFKiY16wmmL2U0iYg9X2y9FBVPsXJWcSToUlg9o1aDxUpPLHDUHMciMiOoqSxWAcDbpdmfgmD8PnZVhwBfWe0lxw8iiDXFnX/uwP1x8RHVpzVWx+9GMrEzXeB+mmeAf6YJ7yorDtLHAj+nhy0Tg0wHBzPhcYAz4XXJHZqCdJ5Stf1E2sM9z0mVEm4TX3eH8/wDovhdoV2On3tbuqVAfVWHD754lgA95P/EZxeJbBS2ydktgHiEkDRPxu7TNyST1qsPd7Nl1umbxKP8AYr22t4MRWdSqufSmi8Ob7scL7wDm4mMrdShsZVZ7xxqVC+TJM8bndp+hK0DD7rU73zEfdNnbp0g+8wMh+di7snJ8i1arT1t7eOPgo+Kx7HCGNeABkQPuo0UnHS2fctgo7Bw4Ee7HbqmOO3YouMiWnmNE/s4KV+pwXGGZ3gMK21/NTmBb7twe3iBGrHEHxCjdqPq4eq6m8hzdHcImO1J0MUYic7zN+8ZKbjybJZsjl9M1bYm3uNo4zIy4rAj+MC3ePDVWEFYRT2vwOs6HDr/JWi7lb1NrAUXkB/y8j1D7fgvTc87ZHh6302Va9yHRckIQtR5AIQhAAhCEACEIQAJptXaVLD03Vazg1jddSdABqTyS9es1jXPcQ1rQS4nIACSSsG3z3ofja5IMUmktpNMiAfnI/UfKwSylhGrS6Z3zx48kvvL7RsTWJZh/7mnpEe9d2uyZ2DxKqXvS8y95c45zJd46po+rwiB+8Z3zCRfiDpAkTY35XP06ws0pZ7Pq9Npa644gv5ll2ZtirhzNKs5l7gG3e3I94SO29rVK7i6rWNQTIBceEdQbkFA0xJJmBnfXlEaqa2Rgab3Q54aDI4jftAnuEpc8YKPTVwl7j7/Yldk1tnCPevgxcCm89eYbGmfJNqjMJUxpio1tHgPCTIk8I0Izku8FZ9nbhUD0nvc4GMsoGgnRStb2fYR7OFvGw6EHXn/RMoM863Vafflzl/hGcbTfSpuHuzxRBDhHl6KW2TtoPhpMHUSpyvudiaeRpYhv+cAPz0MctJTKtuqC7pYVzYmHMdF87QbeKjZRu7IayNWpisSWV5z/AI4LJgaUtnnCMTTEeKY7KNegOGHPbboVBwPH8Lx0XdhjtSG0ttsksIdTfq14g9ovBHWLJXBRjyeBZROvsb4sAlIU6AcYN/W+V/uo+tjxOf2TjZuNBIM/uL/RZXjJEc1dkGJAn1Hdqo2o4tluRcCOQmOj527CVomzqIeLdo7FC7y7v8QLmiHc4z7Vd0tLch4ScJKS8FZ3U26W9FxsbwdFdae1m81lG2aVWhVHE2OPKAImbi3XcdRC7o7ZIGeS0RlwfTzrhelZHybDhdqiZkJXFYwE8QKyvB7eIN3KVft8Fmd1yVjTI/Q5eUXSvt6nTHE54ASeG3ho1bteJ5GxWR7R2o5xguMC4HWc7eSRbtAsIBEGAYPIiRbsIVNzKr01Nfk0He6iHw+Ryk5QevtWbtxJa6xsPDwTzaG1nlvACSD6fkqDc5JJnqaSr24YkPH4khxNjmJ6uY+iWo7UfTeKjDBBB71GOqzpoPztXIqQZz7RrqIR2aHKOMM+nN0tsjF4WnXBuRD+p4s7796mFjnsL2uRUrYUmzmioztaYd5EeC2NbIvKPh9XUqrpRXQIQhMZgQhCABCFzUeGguJgAEk8gLlAGa+2HeLgY3BsN3jjqx+gHot7yJPUBzWRtqazP0vcp1vTtc4nE1a5/wAR8gcmizB3NAUQX3I4shY/blKhLln0Wigq4YFqle5jX8KKb4ItMeev0TdhJvcgeAn8KU95yUZo9iqfA9pVhMkZGeHmM4nuStFxa4jM3yMi0zcWy5KPcLkAzlfn2eaUZUc3vBnvBEHuSGhTTNt3arn+zUTMywGe28Kx4XFCLrGNh73GhSFKOICY6r/deV98aj3Fxc4ADotAtNsz4qqng8G302yc38ZZt7qwQ14WYbI3uAaAXl05zpyv5qaG8ocLGLa69SpvME9FZF4LrUAIgqm79bMpVaRa+xM8DvmY+JBBzExdJHemBMgkaTmozeDeJtalaxkETollJNFKNNZGayuDL6latRcWEk5RPI3HqprY2L4hUmxa0FpuO20kKN2gySdT9Elga5YSRa0fZI4Ra6N8tLTGzG1Yf4DHbYxMx7+qG8g9zR4CAkG7brts2vW/nePqjaFOafFyP7+qieJPGCx0cuUISwksEjUxr3DpPe6P1OJ9e/xXjMTfqTIPSrUOCR1WpD9uKOlr5cvFLDHOgCbWmFGMS1N5GkyCEjijTC5NcCrqvWvPeJE5azeeXV9V4w3XNuS6tHgxTiAJMCY7xB8Qk3EacvNJBwjrnujsQ5/l9570u0f3OBYvAjUiZBFv66+ASD6mpvzXJck3PVIxwZ7bS3+ynFlm08OR8znMPY5jh6wvpJfM3svpztLDf8SfBpP3X0ytMOj5rXvNufwCEITGEEIQgAVd9oWO9zs7EvBglnAP/wBCGf7lYlQPbZXLdnho+eswHsDXu9WhcfQ9azJGC1alxJ/MgkSbr1xXLyJA01+qke9VIUY65AJj1612XAyI5X+iQZn2JWk6Ljr80jNtcngXZlK8ZVIJjkR3EQVw2BmTl5xZdC/qpNGqMsjrC1A0y5oda0zE87LqoBy7V5gW8TgJsPyyfYmmR02iCLiPBR34Zo3LpnGGIbBsTIEa9vKNE/xWKc0C950PKRaFGOowSCZnUd14SwplxHAJ0j8N7J95yUIt5F6eM+FzOi75r5mZkcklVxR5g3JnXsP5zTJtIhxvF1w9pkEgwcjz59qpkTYhc1J0HeOY9Ug5k6WE6aTquqtYkN5Nt1C5MepRWqZWjLnyzXUzLqIidWOEt5tIy7fFV7iU090qDYLx1/VWh0eZqZYki0bnboYnHk+5YOBph1R54WNOcTBJMXgA6ZStGwXsXm9bF56Mp/7nOPord7KWsbs2jTZEs4g/+Nzi4z/MrkEsP9TnPB5t19kZOPWDLH+xahHRxVUHrayPIBR2L9jlZt6WJY6Mg5hb5gn0WyoTOpMSOrtXk+dNrbi4zDialElmrmdMd8XHeFWMRhzz06sl9ZKP2jsXD12ltWjTeDzaJ7QcwetJ7TXTNNfqMl+pHyo9pBheA6LZt4fY7TdLsJWLD+ip0m9z/iHfKzXbu6eLwZIr0XNbPxiHMPIh4y74XOuz0atZCfTILik3P1tkPRJEi9uzqShYuWtToac8l19j1Au2pRP6RUcf+m4epC+jVjfsF2Z08RiSPha2k3tPSd6NWyKsejwtXLNjBCEJjMCEIQALOfbm3/4NM8q7fOnUWjKm+1vB+82bVIzpup1B3ODT5OK4+h6396PnFxjvXLxePzKV7WbdcKR7tYoLCecrsG35OUL3gsT12E3XrBNgJn90hrjweFxyTug8jTJqQbTkp/g28ImbpZLgqpYOcICH6ZZKR44aTMnIcpTWmyCI65Fuei9xDrCCYzHcVCUMsop5Qo42B5jw0v4JLjhwgkgdsCcr9y5pOgTAnODlK4Gf5mhQwP7vB4QT0zlIE9Z/D4LzFP0BBEkiMr8p7kpVMjqyso97rqiQ3uJihccpsTMdYy9SuqlrWskjV11tlllf6ea8c+V1Jma55ZxVH76EZWTfYlEmsHW6J4r5TNpj8stU3a9krq1JtTFVXU+MBwpsA4wDlxOdIBg5RbmrbgPZNs+npWcebqn/AIgKmW4tI8a7UV+6n4RG7i1KtDpcPEx/xcBD2xNjIyz1grTaNQOEtMgqEw26eHpge742EZEOv4lSFPAuaeIPm3KCe2LHwWeiu2nPGUZNTbC2W5dj9Cj34/h+IEJWhiw/JWWrrbx5M/tvsdSjiCbl8LuSV1X54ObRVc1KYcC0gEGxBEg9oXIK94lT3Fjk5gzve32V0KwNTCRRq3PAZ907u+TtFupZDtjYFfCv93XpuY68T8LgNWuycLjLvX1EUz2ls+lXbwVqbXtkGHCYIyI5JWsdGurVSjxLlEB7KtjOw2AZx2fWcapHIOADR/KAe9XFJ06mmXL+iUV4tY4Mk5OUm2CEIXRQQhCABNNrYIV6FWi7KoxzD/zNInzTtCAPkfH4cscWuEOaSCOsEgpvTzkiyv8A7W9iGhjnvA6Ff+8HafjHbxAn/mCoQpXjJRZ7+nanFM7ptkJegwhKYamCRI8E4bSupNm0TFNKsPVolGjULuk3kkYw1e64hDpPanLaUrl1j4z35rvZ3obaX5rzi0jKbpQtE9STeE2BXITrVTEaJo480tVeka7zAGg/ddijm7BxxaW0vy/PolKFXhcHC4BB7S28eNk3lKUniCmZOU8n1lgMQ2pTZUaZa9rXN7HAEeqchZL7Lt8g1jcLXMNypvOTZ+UnlyOi1hrkVTTWPJ4OpodU8PrwdoXiJVcmY5rMBF0zZhAB0bT1lPXBJsyCy3VxnNbl4Hi2lwN21GjoudB0m3nqlwy8zHokMdhG1GlrgCDzVeqYbGYdwNAB7JaHMJgBkw4hptIF7clLKi8SX80VUVJd8lmq1YE5r2nUDhKbUcS4jpNA5wfolqburshK55lw+PgXGELcS8JSbnwbr3iTq7wxcHrglaVXQ9ySleFUhZh5RxoeISVCpNjmPMJVbE01lE2CEIXQBCEIArO/27bcbh4jp05cw9o6Q77HtAWCY3Zb6Ly1wIIkGe3RfUKzLf8A2MA4uAsb9ySaNukucXtMroUwu3j0TmtTAmMwkKrwI1+yyeT348oTNz23XU2EJJzl2HQM8zfuyXMlVEUgcjPkk3RPL7pxNhcZGLX/AC6QfaChMaUBFwTarc99uodad1LJjiBcgp0Sa5Gs3Sdd5JThlPNIVW3TxfklLl8CHCRYz/VKCkYlOMJQn85qeGw3GhUqfpAPbcT5SVxPLyRskoYT+RpsarFp5Badupvq+jFLES+nkHZuaPqFlWzheOX4VY6LbDkpWRecopOEZrbNZRv2ExbKjQ+m4OadR9eSWBWMbB2vUoHouj69o1Cumzt+Wzw1mR/mZcd7c/Bdjf4lweVd6fOL+zlf3LoV4WpvgsdTqt4qbw4dRy7eScAq6akjC008M5uvEpKIXPb+GcyJ8IXnuQMkpC9JS+2muUGRhjKDnDqTUVHAwZ7TqpglJVaYNlku0ab3RfJSNnhjFlczCSxG1GsMOnwT99FumfNUjbz6oeWvBkfCeYvceCxyjbV2y9MI2SwXrZ1TjaHiwIMffyTxIYCjwU2M/S1o8BdLr3q47YpGOT54BCEJxQQhJVXwgDpz4UDvRRFWkR8zZI6+YS+PxkKlbc265pIC4xo5zkz3aDix7o1lRlVwmQVJ7cqcZL+efaq/Vqxnoss44Z9HpLFOI9a43/NU4ZcTrnM6lRjK88h1J7SrAgX5ZLPNnqQiKOkH8yXFWwjkb80qyoI0NxfmlHUJJg2/NVxTGccjB7tczrKa4m9+tSVWlE+GXLXqTZ9Lqn0VYzRGVYwD3dwt+ckpTocRlKe70P590qK7Wxr1JsOXRmtshWuSX2NsrjeAP2WkUtmM937uOjBB65EFUzdev4laDgRZaK4bUeBqbnORjZwL6OIqUXC7HR2jQ9hBBUzHRnmr1vPsFtaKrR/eNEH/ADN+4VBxUsJCnOOD0tPf7q/J42pGqWbXJkTf7XUe6sL+mhXHvNVBxN8Sc2ZtKpSdx06ha4cjn91dtk7+1Basxr4zLeie06eizOniG9ieUcRMX6lJ7ovMTllFdq+9Z/5Nmwe9eFqfOWHk4R5iQpmjXa8SxzXDm0g+iwmhWOh80+obQc13RcRBzyKdamS7Rgs9Kg/0Sx+/JtcoWV4PerEtyqOIE/EZ9VIM3wrxJqD+Vv2TfVR8oyS9MtXTRocrxZ8/fCscnAfyGfK39Eg/e6t+smwuOAH0jVI9WvCZxenW/g0UlR+0MKytUpssSx3E7qbqD2kBUOptmvUcBxvbImAbGf3V73SwRp0eJ3xPvfOBkmpbtlyuBLaHRHc3yTiEIXomAEIQgDwpvXCcpN7EAV/aFIlUnb2zCbrS62HlR2J2aDouDJmJbQwjm5hV7FNjSVueO3ca6ZCrG0dwQ74SQlaz2aarXB5TMpNYfdd0qzZsYt6q54r2dVdCD3Jk/cDEjJoKk6kzfD1CaIIYkRny7I/AnA2pGX2tCfu3CxX/ANfmlKXs8xR/w/NJ7ES38Tl8L+pDu2iJn8sm1baEiACrphfZliTm1o71N4L2Un53jsATKmJOfqc38IykOe6wHhmpzY269WoQSCAtg2Z7P6FL5ZPMqfobFYzIKqjg8+eo3PL5KTsLdwUwLXVkp0OEKYdhANEyxTITGdvJH4iuAqBvdTpkl7TDvmGh6+1WjbNcgFZltvGOc4grj5L05i9yGcg5H7pv7xwTepzXja7h19olRlWevVq11IeDFcRmI5gJ2yvEOiRyJ5aWvqoY1xyQCefmpSizbG2DLEzGECBPkfVKuxBsZIseV+wDJV737spmfzNdsxMDrm/7ZqWx/BTdH5LLTxHJxPXddve4wImbgn8soGljTGl8j+Bdtxo1c4rm1/Ara+SfpFx+mnkn2EAJvE+OSrlPH9ECJT3BY2oXDhGXmmjU32Zbb4xXDNL3b2S3iFR9/U/YK80qoVG3dqVHNEhXHCMMLdCKisI+fvnKcsyHwK9XjQvVQgCEIQAIQhAHhC5LAu0IASNELk4YckuhADb+yN5I/sbeScoQGRsMI3kuxhxySyEBk4FMLrhXqEAeQjhXqEAJuppriMFKfIQBU9pbB4gYCoO8G5dQkua1bTC5dSB0XMFI2NHzRit3qzM2HwUfVwLhmCvqCrs6m7NoUbit1cO/Ng8EYKe9ns+aX4TqSZwXavoeruBhj8qT/wDbzDckYBWpdM+eTg3c0DDu/AvoU+zvDckN9neG5Lm1D/Uy/wBzPn6nh3TcFP8AD4Xk0re6e4eGGidUtzsKPkRtFd+e2zCqWBcflKs+7eyH8QJatao7vYduVMJ7TwVNuTQO5c2A7+MIhtkYPhAsp6m2F61gC6TYM7eQQhC6cBCEIAEIQgAQhCABCEIAEIQgAQhCABCEIAEIQgAQhCABCEIAEIQgAQhCABCEIAEIQgAQhCABCEIAEIQgAQhCAP/Z"
+            alt="Fresh Apples"
+          />
+        </div>
+        <div class="product-info">
+          <div class="product-name">Fresh Apples (1kg)</div>
+          <div class="product-price">$4.99</div>
+          <button
+            class="product-button"
+            onclick="
+              event.stopPropagation();
+              addToCart('apple1', 'Fresh Apples (1kg)', 4.99, 'Grocery');
+            "
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+
+      <!-- Carrot Product -->
+      <div
+        class="product-card"
+        onclick="
+          openModal(
+            'carrot1',
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSS5kX_8qkufRzo8BVE2nXq4tBLmRFT7wCBQ&s',
+            'Organic Carrots (500g)',
+            2.99,
+            '⭐⭐⭐⭐ (4.6/5)',
+            'Crunchy organic carrots for cooking',
+            [
+              '100% Organic',
+              'Fresh Quality',
+              'Rich Taste',
+              'High Beta-Carotene',
+              'Farm Fresh',
+              'No Chemicals',
+            ],
+          )
+        "
+      >
+        <div class="product-image">
+          <img
+            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSS5kX_8qkufRzo8BVE2nXq4tBLmRFT7wCBQ&s"
+            alt="Organic Carrots"
+          />
+        </div>
+        <div class="product-info">
+          <div class="product-name">Organic Carrots (500g)</div>
+          <div class="product-price">$2.99</div>
+          <button
+            class="product-button"
+            onclick="
+              event.stopPropagation();
+              addToCart('carrot1', 'Organic Carrots (500g)', 2.99, 'Grocery');
+            "
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+
+      <!-- Broccoli Product -->
+      <div
+        class="product-card"
+        onclick="
+          openModal(
+            'broccoli1',
+            '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',
+            'Fresh Broccoli (1 head)',
+            3.49,
+            '⭐⭐⭐⭐⭐ (4.7/5)',
+            'Green fresh broccoli for healthy meals',
+            [
+              'Nutrient Dense',
+              'Fresh Picked',
+              'Rich in Vitamins',
+              'High Fiber',
+              'Perfect for Cooking',
+              'Long Lasting',
+            ],
+          )
+        "
+      >
+        <div class="product-image">
+          <img
+            src="data:image/jpeg;base64,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"
+            alt="Fresh Broccoli"
+          />
+        </div>
+        <div class="product-info">
+          <div class="product-name">Fresh Broccoli (1 head)</div>
+          <div class="product-price">$3.49</div>
+          <button
+            class="product-button"
+            onclick="
+              event.stopPropagation();
+              addToCart(
+                'broccoli1',
+                'Fresh Broccoli (1 head)',
+                3.49,
+                'Grocery',
+              );
+            "
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+
+      <!-- Tomato Product -->
+      <div
+        class="product-card"
+        onclick="
+          openModal(
+            'tomato1',
+            'https://media.istockphoto.com/id/831570242/photo/three-juicy-red-tomatoes-isolated-on-white-background.jpg?s=612x612&w=0&k=20&c=bBrjZsWY4eg90OpA2S6cO3psGR1TFx8f4L0HAmIQqm4=',
+            'Fresh Tomatoes (1kg)',
+            3.99,
+            '⭐⭐⭐⭐⭐ (4.8/5)',
+            'Garden fresh organic tomatoes',
+            [
+              '100% Organic',
+              'Farm Fresh',
+              'Rich Red Color',
+              'Perfect Ripeness',
+              'No Pesticides',
+              'Great Flavor',
+            ],
+          )
+        "
+      >
+        <div class="product-image">
+          <img
+            src="https://media.istockphoto.com/id/831570242/photo/three-juicy-red-tomatoes-isolated-on-white-background.jpg?s=612x612&w=0&k=20&c=bBrjZsWY4eg90OpA2S6cO3psGR1TFx8f4L0HAmIQqm4="
+            alt="Fresh Tomatoes"
+          />
+        </div>
+        <div class="product-info">
+          <div class="product-name">Fresh Tomatoes (1kg)</div>
+          <div class="product-price">$3.99</div>
+          <button
+            class="product-button"
+            onclick="
+              event.stopPropagation();
+              addToCart('tomato1', 'Fresh Tomatoes (1kg)', 3.99, 'Grocery');
+            "
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+
+      <!-- Banana Product -->
+      <div
+        class="product-card"
+        onclick="
+          openModal(
+            'banana1',
+            'https://5.imimg.com/data5/SELLER/Default/2022/12/EK/NP/CN/49293026/fresh-banana-fruit.webp',
+            'Fresh Bananas (1 bunch)',
+            2.49,
+            '⭐⭐⭐⭐⭐ (4.9/5)',
+            'Yellow ripe fresh bananas',
+            [
+              'Rich in Potassium',
+              'Sweet Taste',
+              'High Energy',
+              'Natural Sugars',
+              'Perfect Yellow',
+              'Best Bunch',
+            ],
+          )
+        "
+      >
+        <div class="product-image">
+          <img
+            src="https://5.imimg.com/data5/SELLER/Default/2022/12/EK/NP/CN/49293026/fresh-banana-fruit.webp"
+            alt="Fresh Bananas"
+          />
+        </div>
+        <div class="product-info">
+          <div class="product-name">Fresh Bananas (1 bunch)</div>
+          <div class="product-price">$2.49</div>
+          <button
+            class="product-button"
+            onclick="
+              event.stopPropagation();
+              addToCart('banana1', 'Fresh Bananas (1 bunch)', 2.49, 'Grocery');
+            "
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+
+      <!-- Onion Product -->
+      <div
+        class="product-card"
+        onclick="
+          openModal(
+            'onion1',
+            'https://m.media-amazon.com/images/I/51DJ-9xkuQL.jpg',
+            'Fresh Onions (1kg)',
+            2.99,
+            '⭐⭐⭐⭐ (4.5/5)',
+            'Fresh red onions for daily cooking',
+            [
+              'Fresh Harvest',
+              'Strong Flavor',
+              'Good for Cooking',
+              'Long Shelf Life',
+              'High Quality',
+              'Farm Fresh',
+            ],
+          )
+        "
+      >
+        <div class="product-image">
+          <img
+            src="https://m.media-amazon.com/images/I/51DJ-9xkuQL.jpg"
+            alt="Fresh Onions"
+          />
+        </div>
+        <div class="product-info">
+          <div class="product-name">Fresh Onions (1kg)</div>
+          <div class="product-price">$2.99</div>
+          <button
+            class="product-button"
+            onclick="
+              event.stopPropagation();
+              addToCart('onion1', 'Fresh Onions (1kg)', 2.99, 'Grocery');
+            "
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+
+      <!-- Spinach Product -->
+      <div
+        class="product-card"
+        onclick="
+          openModal(
+            'spinach1',
+            'https://m.media-amazon.com/images/I/71tdN2taTCL.jpg',
+            'Fresh Spinach (250g)',
+            3.29,
+            '⭐⭐⭐⭐⭐ (4.7/5)',
+            'Nutritious fresh spinach leaves',
+            [
+              'High Iron',
+              'Antioxidants',
+              'Dark Green Color',
+              'Organic Grown',
+              'Tender Leaves',
+              'Perfect for Cooking',
+            ],
+          )
+        "
+      >
+        <div class="product-image">
+          <img
+            src="https://m.media-amazon.com/images/I/71tdN2taTCL.jpg"
+            alt="Fresh Spinach"
+          />
+        </div>
+        <div class="product-info">
+          <div class="product-name">Fresh Spinach (250g)</div>
+          <div class="product-price">$3.29</div>
+          <button
+            class="product-button"
+            onclick="
+              event.stopPropagation();
+              addToCart('spinach1', 'Fresh Spinach (250g)', 3.29, 'Grocery');
+            "
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 
 <div id="productModal" class="modal">
-    <div class="modal-content">
-        <button class="close-btn" onclick="closeModal()">&times;</button>
-        <img id="modalImage" class="modal-image" src="" alt="">
-        <h2 class="modal-title" id="modalTitle"></h2>
-        <div class="rating" id="modalRating"></div>
-        <div class="modal-price" id="modalPrice"></div>
-        <p id="modalDescription" style="color: #666; margin-bottom: 20px;"></p>
-        <div class="modal-section">
-            <h4>Key Features</h4>
-            <ul id="modalFeatures"></ul>
-        </div>
-        <div class="modal-actions">
-            <button class="modal-btn modal-btn-primary" onclick="addFromModal()">Add to Cart</button>
-            <button class="modal-btn modal-btn-secondary" onclick="closeModal()">Close</button>
-        </div>
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeModal()">&times;</button>
+    <img id="modalImage" class="modal-image" src="" alt="" />
+    <h2 class="modal-title" id="modalTitle"></h2>
+    <div class="rating" id="modalRating"></div>
+    <div class="modal-price" id="modalPrice"></div>
+    <p id="modalDescription" style="color: #666; margin-bottom: 20px"></p>
+    <div class="modal-section">
+      <h4>Key Features</h4>
+      <ul id="modalFeatures"></ul>
     </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-primary" onclick="addFromModal()">
+        Add to Cart
+      </button>
+      <button class="modal-btn modal-btn-secondary" onclick="closeModal()">
+        Close
+      </button>
+    </div>
+  </div>
 </div>
 
 <script>
-    let currentProduct = {};
+  let currentProduct = {};
 
-    function openModal(id, image, name, price, rating, description, features) {
-        currentProduct = { id, name, price, image, rating, description, features };
-        document.getElementById('modalImage').src = image;
-        document.getElementById('modalTitle').textContent = name;
-        document.getElementById('modalPrice').textContent = '$' + price.toFixed(2);
-        document.getElementById('modalRating').textContent = rating;
-        document.getElementById('modalDescription').textContent = description;
-        const featuresList = document.getElementById('modalFeatures');
-        featuresList.innerHTML = '';
-        features.forEach(feature => {
-            const li = document.createElement('li');
-            li.textContent = feature;
-            featuresList.appendChild(li);
-        });
-        document.getElementById('productModal').style.display = 'block';
+  function openModal(id, image, name, price, rating, description, features) {
+    currentProduct = {
+      id: id,
+      name: name,
+      price: price,
+      image: image,
+      rating: rating,
+      description: description,
+      features: features,
+    };
+    document.getElementById("modalImage").src = image;
+    document.getElementById("modalTitle").textContent = name;
+    document.getElementById("modalPrice").textContent = "$" + price.toFixed(2);
+    document.getElementById("modalRating").textContent = rating;
+    document.getElementById("modalDescription").textContent = description;
+    const featuresList = document.getElementById("modalFeatures");
+    featuresList.innerHTML = "";
+    for (let i = 0; i < features.length; i++) {
+      const li = document.createElement("li");
+      li.textContent = features[i];
+      featuresList.appendChild(li);
     }
+    document.getElementById("productModal").style.display = "block";
+  }
 
-    function closeModal() {
-        document.getElementById('productModal').style.display = 'none';
-    }
+  function closeModal() {
+    document.getElementById("productModal").style.display = "none";
+  }
 
-    function addFromModal() {
-        addToCart(currentProduct.id, currentProduct.name, currentProduct.price, 'Grocery');
-        closeModal();
-    }
+  function addFromModal() {
+    addToCart(
+      currentProduct.id,
+      currentProduct.name,
+      currentProduct.price,
+      "Grocery",
+    );
+    closeModal();
+  }
 
-    function addToCart(id, name, price, category) {
-        fetch('/add_to_cart', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, name, price, category })
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert(data.message || 'Item added to cart!');
-        })
-        .catch(error => console.error('Error:', error));
-    }
-
-    window.onclick = function(event) {
-        const modal = document.getElementById('productModal');
-        if (event.target === modal) {
-            closeModal();
+  function addToCart(id, name, price, category) {
+    fetch("/add_to_cart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: id,
+        name: name,
+        price: price,
+        category: category,
+        quantity: 1,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          alert(data.message || "✓ Item added to cart!");
+        } else {
+          alert("Error: " + (data.error || "Could not add to cart"));
         }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        alert("Error adding item to cart");
+      });
+  }
+
+  window.onclick = function (event) {
+    const modal = document.getElementById("productModal");
+    if (event.target === modal) {
+      closeModal();
     }
+  };
 </script>
+
 {% endblock %}
