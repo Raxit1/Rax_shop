@@ -6,23 +6,18 @@ import random
 import string
 import os
 
-# Use environment secret key or default
+# Create Flask app
+app = Flask(__name__)
+
+# Secret key
 app.secret_key = os.environ.get('SECRET_KEY', 'secret123')
 
-# For production, use environment variable for database path
-import os
+# Database path
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATABASE_PATH = os.path.join(BASE_DIR, 'users.db')
 
 def get_db():
     return sqlite3.connect(DATABASE_PATH)
-
-
-app = Flask(__name__)
-app.secret_key = "secret123"
-
-def get_db():
-    return sqlite3.connect("users.db")
 
 # Create tables with admin support
 conn = get_db()
@@ -244,11 +239,11 @@ def add_to_cart():
         if cart_item["id"] == item["id"]:
             cart_item["quantity"] += item["quantity"]
             session.modified = True
-            return jsonify({"success": True})
+            return jsonify({"success": True, "message": "Item quantity updated"})
     
     session["cart"].append(item)
     session.modified = True
-    return jsonify({"success": True})
+    return jsonify({"success": True, "message": "Item added to cart"})
 
 @app.route("/remove_from_cart/<item_id>", methods=["POST"])
 def remove_from_cart(item_id):
@@ -266,38 +261,36 @@ def checkout():
         return redirect("/cart")
     total = sum(item["price"] * item["quantity"] for item in cart_items)
     return render_template("checkout.html", user=session["user"], cart_items=cart_items, total=total)
+
 @app.route("/place_order", methods=["POST"])
 def place_order():
-    if "user" not in session:
+    if "user" not in session or "cart" not in session or not session["cart"]:
         return redirect("/")
     
-    if "cart" not in session or not session["cart"]:
-        return redirect("/cart")
+    # Generate Order ID
+    order_id = "ORD-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+    tracking_number = "TRK-" + ''.join(random.choices(string.digits, k=12))
+    
+    # Get form data
+    full_name = request.form.get("full_name", "")
+    email = request.form.get("email", "")
+    phone = request.form.get("phone", "")
+    address = request.form.get("address", "")
+    city = request.form.get("city", "")
+    postal_code = request.form.get("postal_code", "")
+    payment_method = request.form.get("payment_method", "")
+    notes = request.form.get("notes", "")
+    
+    # Validate required fields
+    if not all([full_name, email, phone, address, city, postal_code, payment_method]):
+        return "Please fill all required fields", 400
+    
+    # Calculate total
+    cart_items = session["cart"]
+    subtotal = sum(item["price"] * item["quantity"] for item in cart_items)
+    total_with_tax = subtotal * 1.1
     
     try:
-        # Generate Order ID
-        order_id = "ORD-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
-        tracking_number = "TRK-" + ''.join(random.choices(string.digits, k=12))
-        
-        # Get form data
-        full_name = request.form.get("full_name", "")
-        email = request.form.get("email", "")
-        phone = request.form.get("phone", "")
-        address = request.form.get("address", "")
-        city = request.form.get("city", "")
-        postal_code = request.form.get("postal_code", "")
-        payment_method = request.form.get("payment_method", "")
-        notes = request.form.get("notes", "")
-        
-        # Validate required fields
-        if not all([full_name, email, phone, address, city, postal_code, payment_method]):
-            return "Please fill all required fields", 400
-        
-        # Calculate total
-        cart_items = session["cart"]
-        subtotal = sum(item["price"] * item["quantity"] for item in cart_items)
-        total_with_tax = subtotal * 1.1
-        
         conn = get_db()
         
         # Get user ID
@@ -335,95 +328,18 @@ def place_order():
         session.pop("cart", None)
         session.modified = True
         
-        # Import datetime for template
-        import datetime as dt
-        
         return render_template("order_success.html", 
                              user=session["user"], 
                              order_items=order_items, 
                              order_id=order_id, 
                              tracking_number=tracking_number, 
-                             total=total_with_tax,
-                             datetime=dt)
+                             total=total_with_tax)
         
     except Exception as e:
         print(f"Error placing order: {e}")
         import traceback
         traceback.print_exc()
         return f"Error placing order: {str(e)}", 500
-    if "user" not in session or "cart" not in session or not session["cart"]:
-        return redirect("/")
-    
-    # Generate Order ID
-    order_id = "ORD-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
-    tracking_number = "TRK-" + ''.join(random.choices(string.digits, k=12))
-    
-    # Get form data
-    full_name = request.form.get("full_name")
-    email = request.form.get("email")
-    phone = request.form.get("phone")
-    address = request.form.get("address")
-    city = request.form.get("city")
-    postal_code = request.form.get("postal_code")
-    payment_method = request.form.get("payment_method")
-    notes = request.form.get("notes", "")
-    
-    # Calculate total
-    cart_items = session["cart"]
-    subtotal = sum(item["price"] * item["quantity"] for item in cart_items)
-    total_with_tax = subtotal * 1.1
-    
-    try:
-        conn = get_db()
-        
-        # Get user ID
-        user_data = conn.execute(
-            "SELECT id FROM users WHERE username = ?",
-            (session["user"],)
-        ).fetchone()
-        user_id = user_data[0] if user_data else None
-        
-        # Insert order
-        conn.execute("""
-            INSERT INTO orders (user_id, order_id, full_name, email, phone, address, city, postal_code, payment_method, notes, total_amount, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Processing')
-        """, (user_id, order_id, full_name, email, phone, address, city, postal_code, payment_method, notes, total_with_tax))
-        
-        # Insert order items
-        for item in cart_items:
-            conn.execute("""
-                INSERT INTO order_items (order_id, product_name, product_category, quantity, price, subtotal)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (order_id, item["name"], item["category"], item["quantity"], item["price"], item["price"] * item["quantity"]))
-        
-        # Insert shipment record
-        estimated_delivery = (datetime.datetime.now() + datetime.timedelta(days=5)).strftime("%Y-%m-%d")
-        conn.execute("""
-            INSERT INTO shipments (order_id, tracking_number, estimated_delivery, current_location, status)
-            VALUES (?, ?, ?, 'Warehouse', 'Order Placed')
-        """, (order_id, tracking_number, estimated_delivery))
-        
-        conn.commit()
-        conn.close()
-        
-        # Clear cart from session
-        order_items = session["cart"].copy()
-        session.pop("cart", None)
-        session.modified = True
-        
-        # Pass datetime to template
-        import datetime as dt
-        return render_template("order_success.html", 
-                             user=session["user"], 
-                             order_items=order_items, 
-                             order_id=order_id, 
-                             tracking_number=tracking_number, 
-                             total=total_with_tax,
-                             datetime=dt)
-        
-    except Exception as e:
-        print(f"Error placing order: {e}")
-        return "Error placing order", 500
 
 @app.route("/orders")
 def orders():
@@ -597,25 +513,36 @@ def update_order_status():
     new_status = data.get("status")
     
     conn = get_db()
+    
+    # Update order status
     conn.execute("UPDATE orders SET status = ? WHERE order_id = ?", (new_status, order_id))
     
-    if new_status in ["Shipped", "Delivered"]:
+    # Update shipment status and tracking
+    if new_status == "Shipped":
+        conn.execute("""
+            UPDATE shipments 
+            SET status = ?, shipped_date = CURRENT_TIMESTAMP, current_location = 'In Transit'
+            WHERE order_id = ?
+        """, (new_status, order_id))
+    elif new_status == "Delivered":
+        conn.execute("""
+            UPDATE shipments 
+            SET status = ?, current_location = 'Delivered to Customer'
+            WHERE order_id = ?
+        """, (new_status, order_id))
+    else:
         conn.execute("UPDATE shipments SET status = ? WHERE order_id = ?", (new_status, order_id))
-        if new_status == "Shipped":
-            shipped_date = conn.execute("SELECT shipped_date FROM shipments WHERE order_id = ?", (order_id,)).fetchone()[0]
-            if not shipped_date:
-                conn.execute("UPDATE shipments SET shipped_date = CURRENT_TIMESTAMP WHERE order_id = ?", (order_id,))
     
+    # Add to status history
     conn.execute("""
         INSERT INTO order_status_history (order_id, status, updated_by, notes)
         VALUES (?, ?, ?, ?)
-    """, (order_id, new_status, session["admin"], f"Status updated to {new_status}"))
+    """, (order_id, new_status, session["admin"], f"Status updated to {new_status} by admin"))
     
     conn.commit()
     conn.close()
     
-    return jsonify({"success": True})
-
+    return jsonify({"success": True, "message": f"Order status updated to {new_status}"})
 @app.route("/admin/products")
 def admin_products():
     if "admin" not in session:
@@ -799,3 +726,6 @@ def seed_products():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
+
+# For Gunicorn on Render
+application = app
