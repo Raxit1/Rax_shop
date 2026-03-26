@@ -77,7 +77,6 @@
 
   .track-btn:hover {
     transform: scale(1.05);
-    opacity: 0.9;
   }
 
   .no-orders {
@@ -97,12 +96,10 @@
     .orders-table {
       font-size: 0.9em;
     }
-
     .orders-table th,
     .orders-table td {
       padding: 10px;
     }
-
     .track-btn {
       padding: 5px 10px;
       font-size: 12px;
@@ -131,17 +128,17 @@
     <tbody>
       {% for order in orders %}
       <tr>
-        <td class="order-id"><strong>{{ order[0] }}</strong></td>
-        <td class="order-amount">${{ "%.2f"|format(order[2]) }}</td>
+        <td><strong>{{ order[0] }}</strong></td>
+        <td>${{ "%.2f"|format(order[2]) }}</td>
         <td>
-          {% if order[4] == 'Processing' %}
+          {% set status = order[4] %} {% if status == 'Processing' %}
           <span class="order-status status-processing">⏳ Processing</span>
-          {% elif order[4] == 'Shipped' %}
+          {% elif status == 'Shipped' %}
           <span class="order-status status-shipped">🚚 Shipped</span>
-          {% elif order[4] == 'Delivered' %}
+          {% elif status == 'Delivered' %}
           <span class="order-status status-delivered">✅ Delivered</span>
           {% else %}
-          <span class="order-status">{{ order[4] }}</span>
+          <span class="order-status">{{ status }}</span>
           {% endif %}
         </td>
         <td>{{ order[5] if order[5] else 'Not assigned' }}</td>
@@ -171,4 +168,9 @@
   </div>
   {% endif %}
 </div>
+
+<script>
+  // Debug: Log orders data to console
+  console.log("Orders data:", {{ orders|tojson }});
+</script>
 {% endblock %}

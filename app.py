@@ -356,6 +356,8 @@ def orders():
         return redirect("/")
     
     user_id = user_data[0]
+    
+    # Get ALL orders for this user
     orders_data = conn.execute("""
         SELECT o.order_id, o.full_name, o.total_amount, o.order_date, o.status, 
                s.tracking_number, s.current_location, s.estimated_delivery
@@ -364,10 +366,16 @@ def orders():
         WHERE o.user_id = ?
         ORDER BY o.order_date DESC
     """, (user_id,)).fetchall()
+    
+    # Debug prints
+    print(f"\n=== ORDERS FOR USER ID {user_id} ===")
+    for order in orders_data:
+        print(f"Order: {order[0]} | Status: {order[4]} | Amount: {order[2]}")
+    print("=" * 40)
+    
     conn.close()
     
     return render_template("orders.html", user=session["user"], orders=orders_data)
-
 @app.route("/track_order/<order_id>")
 def track_order(order_id):
     if "user" not in session:
@@ -512,42 +520,58 @@ def update_order_status():
     order_id = data.get("order_id")
     new_status = data.get("status")
     
+    print(f"Updating order {order_id} to status: {new_status}")  # Debug
+    
     conn = get_db()
     
-    # Update order status in orders table
-    conn.execute("UPDATE orders SET status = ? WHERE order_id = ?", (new_status, order_id))
-    
-    # Update shipment table
-    if new_status == "Shipped":
+    try:
+        # Update order status in orders table
+        conn.execute("UPDATE orders SET status = ? WHERE order_id = ?", (new_status, order_id))
+        print(f"✓ Orders table updated for {order_id}")
+        
+        # Update shipment table
+        if new_status == "Shipped":
+            conn.execute("""
+                UPDATE shipments 
+                SET status = ?, 
+                    shipped_date = CURRENT_TIMESTAMP, 
+                    current_location = 'In Transit'
+                WHERE order_id = ?
+            """, (new_status, order_id))
+            print(f"✓ Shipment updated to Shipped")
+            
+        elif new_status == "Delivered":
+            conn.execute("""
+                UPDATE shipments 
+                SET status = ?, 
+                    current_location = 'Delivered to Customer'
+                WHERE order_id = ?
+            """, (new_status, order_id))
+            print(f"✓ Shipment updated to Delivered")
+            
+        else:
+            conn.execute("UPDATE shipments SET status = ? WHERE order_id = ?", (new_status, order_id))
+        
+        # Add to status history
         conn.execute("""
-            UPDATE shipments 
-            SET status = ?, 
-                shipped_date = CURRENT_TIMESTAMP, 
-                current_location = 'In Transit'
-            WHERE order_id = ?
-        """, (new_status, order_id))
-    elif new_status == "Delivered":
-        conn.execute("""
-            UPDATE shipments 
-            SET status = ?, 
-                current_location = 'Delivered to Customer',
-                shipped_date = COALESCE(shipped_date, CURRENT_TIMESTAMP)
-            WHERE order_id = ?
-        """, (new_status, order_id))
-    else:
-        conn.execute("UPDATE shipments SET status = ? WHERE order_id = ?", (new_status, order_id))
-    
-    # Add to status history
-    conn.execute("""
-        INSERT INTO order_status_history (order_id, status, updated_by, notes)
-        VALUES (?, ?, ?, ?)
-    """, (order_id, new_status, session["admin"], f"Status updated to {new_status} by admin"))
-    
-    conn.commit()
-    conn.close()
-    
-    return jsonify({"success": True, "message": f"Order status updated to {new_status}"})
-
+            INSERT INTO order_status_history (order_id, status, updated_by, notes)
+            VALUES (?, ?, ?, ?)
+        """, (order_id, new_status, session["admin"], f"Status updated to {new_status} by admin"))
+        
+        conn.commit()
+        print(f"✓ All changes committed for order {order_id}")
+        
+        # Verify the update
+        verify = conn.execute("SELECT status FROM orders WHERE order_id = ?", (order_id,)).fetchone()
+        print(f"Verification: Order {order_id} now has status: {verify[0]}")
+        
+        conn.close()
+        return jsonify({"success": True, "message": f"Order status updated to {new_status}"})
+        
+    except Exception as e:
+        print(f"Error: {e}")
+        conn.close()
+        return jsonify({"error": str(e)}), 500
 @app.route("/admin/products")
 def admin_products():
     if "admin" not in session:
