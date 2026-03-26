@@ -514,31 +514,28 @@ def update_order_status():
     
     conn = get_db()
     
-    # Update order status
+    # Update order status in orders table
     conn.execute("UPDATE orders SET status = ? WHERE order_id = ?", (new_status, order_id))
     
-    # Update shipment status and tracking
+    # Update shipment table
     if new_status == "Shipped":
         conn.execute("""
             UPDATE shipments 
-            SET status = ?, shipped_date = CURRENT_TIMESTAMP, current_location = 'In Transit'
+            SET status = ?, 
+                shipped_date = CURRENT_TIMESTAMP, 
+                current_location = 'In Transit'
             WHERE order_id = ?
         """, (new_status, order_id))
     elif new_status == "Delivered":
         conn.execute("""
             UPDATE shipments 
-            SET status = ?, current_location = 'Delivered to Customer'
+            SET status = ?, 
+                current_location = 'Delivered to Customer',
+                shipped_date = COALESCE(shipped_date, CURRENT_TIMESTAMP)
             WHERE order_id = ?
         """, (new_status, order_id))
     else:
         conn.execute("UPDATE shipments SET status = ? WHERE order_id = ?", (new_status, order_id))
-<<<<<<< HEAD
-=======
-        if new_status == "Shipped":
-            shipped_date = conn.execute("SELECT shipped_date FROM shipments WHERE order_id = ?", (order_id,)).fetchone()
-            if shipped_date and not shipped_date[0]:
-                conn.execute("UPDATE shipments SET shipped_date = CURRENT_TIMESTAMP WHERE order_id = ?", (order_id,))
->>>>>>> f2163695a9d6688f5a125bb14c009290de1f21fc
     
     # Add to status history
     conn.execute("""
@@ -550,6 +547,7 @@ def update_order_status():
     conn.close()
     
     return jsonify({"success": True, "message": f"Order status updated to {new_status}"})
+
 @app.route("/admin/products")
 def admin_products():
     if "admin" not in session:
@@ -735,8 +733,4 @@ if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
 
 # For Gunicorn on Render
-<<<<<<< HEAD
 application = app
-=======
-application = app
->>>>>>> f2163695a9d6688f5a125bb14c009290de1f21fc
