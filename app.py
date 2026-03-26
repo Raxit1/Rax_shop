@@ -4,6 +4,19 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import datetime
 import random
 import string
+import os
+
+# Use environment secret key or default
+app.secret_key = os.environ.get('SECRET_KEY', 'secret123')
+
+# For production, use environment variable for database path
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATABASE_PATH = os.path.join(BASE_DIR, 'users.db')
+
+def get_db():
+    return sqlite3.connect(DATABASE_PATH)
+
 
 app = Flask(__name__)
 app.secret_key = "secret123"
