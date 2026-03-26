@@ -3,18 +3,13 @@
     "builds": [
         {
             "src": "app.py",
-            "use": "@vercel/python"
-        },
-        {
-            "src": "static/**/*",
-            "use": "@vercel/static"
+            "use": "@vercel/python",
+            "config": {
+                "installCommand": "pip install Flask Werkzeug"
+            }
         }
     ],
     "routes": [
-        {
-            "src": "/static/(.*)",
-            "dest": "/static/$1"
-        },
         {
             "src": "/(.*)",
             "dest": "app.py"

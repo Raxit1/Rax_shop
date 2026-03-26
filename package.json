@@ -1,0 +1,7 @@
+{
+    "name": "rax-shop",
+    "version": "1.0.0",
+    "scripts": {
+        "build": "pip install Flask Werkzeug"
+    }
+}
