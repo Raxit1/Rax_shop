@@ -251,6 +251,13 @@
     </span>
   </div>
 
+  <!-- Hidden input for order ID -->
+  <input
+    type="hidden"
+    id="hiddenOrderId"
+    value="{{ order[1] if order and order|length > 1 else '' }}"
+  />
+
   <div class="info-grid">
     <div class="info-card">
       <h3><i class="fas fa-user"></i> Customer Information</h3>
@@ -313,9 +320,10 @@
       </div>
       <div class="info-row">
         <span class="info-label">Total Amount:</span>
-        <span class="info-value">
-          ${{ "%.2f"|format(order[11] if order and order|length > 11 else 0) }}
-        </span>
+        <span class="info-value"
+          >${{ "%.2f"|format(order[11] if order and order|length > 11 else 0)
+          }}</span
+        >
       </div>
     </div>
 
@@ -417,8 +425,17 @@
 
 <script>
   function updateStatus() {
-    const orderId = "{{ order[1] if order and order|length > 1 else '' }}";
+    const orderId = document.getElementById("hiddenOrderId").value;
     const newStatus = document.getElementById("orderStatus").value;
+
+    console.log("Updating order:", orderId, "to status:", newStatus);
+
+    if (!orderId || orderId === "") {
+      alert(
+        "Error: Order ID not found. Please refresh the page and try again.",
+      );
+      return;
+    }
 
     fetch("/admin/update_order_status", {
       method: "POST",
@@ -433,15 +450,15 @@
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
-          alert("Order status updated successfully!");
+          alert("✅ " + data.message);
           location.reload();
         } else {
-          alert("Error updating status: " + (data.error || "Unknown error"));
+          alert("❌ Error: " + (data.error || "Unknown error"));
         }
       })
       .catch((error) => {
         console.error("Error:", error);
-        alert("Error updating order status");
+        alert("❌ Error updating order status");
       });
   }
 </script>

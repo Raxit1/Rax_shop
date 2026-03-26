@@ -484,11 +484,16 @@ def admin_order_detail(order_id):
     conn = get_db()
     
     order = conn.execute("""
-        SELECT o.*, s.tracking_number, s.shipped_date, s.current_location, s.status as shipment_status, s.estimated_delivery
+        SELECT o.*, s.tracking_number, s.shipped_date, s.current_location, 
+               s.status as shipment_status, s.estimated_delivery
         FROM orders o
         LEFT JOIN shipments s ON o.order_id = s.order_id
         WHERE o.order_id = ?
     """, (order_id,)).fetchone()
+    
+    if not order:
+        conn.close()
+        return "Order not found", 404
     
     items = conn.execute("""
         SELECT product_name, quantity, price, subtotal
@@ -510,9 +515,75 @@ def admin_order_detail(order_id):
                          order=order, 
                          items=items,
                          status_history=status_history)
-
 @app.route("/admin/update_order_status", methods=["POST"])
 def update_order_status():
+    if "admin" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    data = request.json
+    order_id = data.get("order_id")
+    new_status = data.get("status")
+    
+    if not order_id:
+        return jsonify({"error": "No order_id provided"}), 400
+    
+    if not new_status:
+        return jsonify({"error": "No status provided"}), 400
+    
+    conn = get_db()
+    
+    try:
+        # Check if order exists
+        order = conn.execute("SELECT order_id, status FROM orders WHERE order_id = ?", (order_id,)).fetchone()
+        
+        if not order:
+            conn.close()
+            return jsonify({"error": f"Order {order_id} not found"}), 404
+        
+        # Update order status
+        conn.execute("UPDATE orders SET status = ? WHERE order_id = ?", (new_status, order_id))
+        
+        # Update or create shipment
+        shipment = conn.execute("SELECT order_id FROM shipments WHERE order_id = ?", (order_id,)).fetchone()
+        
+        if shipment:
+            if new_status == "Shipped":
+                conn.execute("""
+                    UPDATE shipments 
+                    SET status = ?, shipped_date = CURRENT_TIMESTAMP, current_location = 'In Transit'
+                    WHERE order_id = ?
+                """, (new_status, order_id))
+            elif new_status == "Delivered":
+                conn.execute("""
+                    UPDATE shipments 
+                    SET status = ?, current_location = 'Delivered to Customer'
+                    WHERE order_id = ?
+                """, (new_status, order_id))
+            else:
+                conn.execute("UPDATE shipments SET status = ? WHERE order_id = ?", (new_status, order_id))
+        else:
+            # Create new shipment
+            tracking_number = "TRK-" + ''.join(random.choices(string.digits, k=12))
+            estimated_delivery = (datetime.datetime.now() + datetime.timedelta(days=5)).strftime("%Y-%m-%d")
+            conn.execute("""
+                INSERT INTO shipments (order_id, tracking_number, estimated_delivery, current_location, status)
+                VALUES (?, ?, ?, 'Warehouse', ?)
+            """, (order_id, tracking_number, estimated_delivery, new_status))
+        
+        # Add to history
+        conn.execute("""
+            INSERT INTO order_status_history (order_id, status, updated_by, notes)
+            VALUES (?, ?, ?, ?)
+        """, (order_id, new_status, session["admin"], f"Status updated to {new_status}"))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({"success": True, "message": f"Order status updated to {new_status}"})
+        
+    except Exception as e:
+        conn.close()
+        return jsonify({"error": str(e)}), 500
     if "admin" not in session:
         return jsonify({"error": "Unauthorized"}), 401
     
