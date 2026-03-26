@@ -520,6 +520,180 @@ def update_order_status():
     order_id = data.get("order_id")
     new_status = data.get("status")
     
+    if not order_id or not new_status:
+        return jsonify({"error": "Missing order_id or status"}), 400
+    
+    print(f"🔵 Updating order {order_id} to status: {new_status}")
+    
+    conn = get_db()
+    
+    try:
+        # First check if order exists
+        check_order = conn.execute("SELECT order_id FROM orders WHERE order_id = ?", (order_id,)).fetchone()
+        
+        if not check_order:
+            conn.close()
+            return jsonify({"error": f"Order {order_id} not found"}), 404
+        
+        # Update order status
+        conn.execute("UPDATE orders SET status = ? WHERE order_id = ?", (new_status, order_id))
+        print(f"✅ Orders table updated for {order_id}")
+        
+        # Check if shipment exists
+        check_shipment = conn.execute("SELECT order_id FROM shipments WHERE order_id = ?", (order_id,)).fetchone()
+        
+        if check_shipment:
+            # Update existing shipment
+            if new_status == "Shipped":
+                conn.execute("""
+                    UPDATE shipments 
+                    SET status = ?, 
+                        shipped_date = CURRENT_TIMESTAMP, 
+                        current_location = 'In Transit'
+                    WHERE order_id = ?
+                """, (new_status, order_id))
+                print(f"✅ Shipment updated to Shipped")
+                
+            elif new_status == "Delivered":
+                conn.execute("""
+                    UPDATE shipments 
+                    SET status = ?, 
+                        current_location = 'Delivered to Customer'
+                    WHERE order_id = ?
+                """, (new_status, order_id))
+                print(f"✅ Shipment updated to Delivered")
+                
+            else:
+                conn.execute("UPDATE shipments SET status = ? WHERE order_id = ?", (new_status, order_id))
+                print(f"✅ Shipment status updated")
+        else:
+            # Create new shipment
+            import random
+            import string
+            tracking_number = "TRK-" + ''.join(random.choices(string.digits, k=12))
+            import datetime
+            estimated_delivery = (datetime.datetime.now() + datetime.timedelta(days=5)).strftime("%Y-%m-%d")
+            conn.execute("""
+                INSERT INTO shipments (order_id, tracking_number, estimated_delivery, current_location, status)
+                VALUES (?, ?, ?, 'Warehouse', ?)
+            """, (order_id, tracking_number, estimated_delivery, new_status))
+            print(f"✅ New shipment created for {order_id}")
+        
+        # Add to status history
+        conn.execute("""
+            INSERT INTO order_status_history (order_id, status, updated_by, notes)
+            VALUES (?, ?, ?, ?)
+        """, (order_id, new_status, session["admin"], f"Status updated to {new_status} by admin"))
+        
+        conn.commit()
+        
+        # Verify the update
+        verify = conn.execute("SELECT status FROM orders WHERE order_id = ?", (order_id,)).fetchone()
+        if verify:
+            print(f"🟢 Verified: Order {order_id} now has status: {verify[0]}")
+        else:
+            print(f"🔴 Verification failed")
+        
+        conn.close()
+        return jsonify({"success": True, "message": f"Order status updated to {new_status}"})
+        
+    except Exception as e:
+        print(f"🔴 Error: {e}")
+        import traceback
+        traceback.print_exc()
+        conn.close()
+        return jsonify({"error": str(e)}), 500
+    if "admin" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    data = request.json
+    order_id = data.get("order_id")
+    new_status = data.get("status")
+    
+    if not order_id or not new_status:
+        return jsonify({"error": "Missing order_id or status"}), 400
+    
+    print(f"🟡 Updating order {order_id} to status: {new_status}")
+    
+    conn = get_db()
+    
+    try:
+        # First check if order exists
+        check_order = conn.execute("SELECT order_id FROM orders WHERE order_id = ?", (order_id,)).fetchone()
+        
+        if not check_order:
+            conn.close()
+            return jsonify({"error": "Order not found"}), 404
+        
+        # Update order status
+        conn.execute("UPDATE orders SET status = ? WHERE order_id = ?", (new_status, order_id))
+        print(f"✅ Orders table updated for {order_id}")
+        
+        # Check if shipment exists
+        check_shipment = conn.execute("SELECT order_id FROM shipments WHERE order_id = ?", (order_id,)).fetchone()
+        
+        if check_shipment:
+            # Update shipment if it exists
+            if new_status == "Shipped":
+                conn.execute("""
+                    UPDATE shipments 
+                    SET status = ?, 
+                        shipped_date = CURRENT_TIMESTAMP, 
+                        current_location = 'In Transit'
+                    WHERE order_id = ?
+                """, (new_status, order_id))
+                print(f"✅ Shipment updated to Shipped")
+                
+            elif new_status == "Delivered":
+                conn.execute("""
+                    UPDATE shipments 
+                    SET status = ?, 
+                        current_location = 'Delivered to Customer'
+                    WHERE order_id = ?
+                """, (new_status, order_id))
+                print(f"✅ Shipment updated to Delivered")
+                
+            else:
+                conn.execute("UPDATE shipments SET status = ? WHERE order_id = ?", (new_status, order_id))
+        else:
+            # Create shipment if it doesn't exist
+            tracking_number = "TRK-" + ''.join(random.choices(string.digits, k=12))
+            estimated_delivery = (datetime.datetime.now() + datetime.timedelta(days=5)).strftime("%Y-%m-%d")
+            conn.execute("""
+                INSERT INTO shipments (order_id, tracking_number, estimated_delivery, current_location, status)
+                VALUES (?, ?, ?, 'Warehouse', ?)
+            """, (order_id, tracking_number, estimated_delivery, new_status))
+            print(f"✅ New shipment created for {order_id}")
+        
+        # Add to status history
+        conn.execute("""
+            INSERT INTO order_status_history (order_id, status, updated_by, notes)
+            VALUES (?, ?, ?, ?)
+        """, (order_id, new_status, session["admin"], f"Status updated to {new_status} by admin"))
+        
+        conn.commit()
+        
+        # Verify the update
+        verify = conn.execute("SELECT status FROM orders WHERE order_id = ?", (order_id,)).fetchone()
+        if verify:
+            print(f"🟢 Verified: Order {order_id} now has status: {verify[0]}")
+        else:
+            print(f"🔴 Verification failed: Order {order_id} not found after update")
+        
+        conn.close()
+        return jsonify({"success": True, "message": f"Order status updated to {new_status}"})
+        
+    except Exception as e:
+        print(f"🔴 Error: {e}")
+        conn.close()
+        return jsonify({"error": str(e)}), 500
+    if "admin" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    data = request.json
+    order_id = data.get("order_id")
+    new_status = data.get("status")
+    
     print(f"Updating order {order_id} to status: {new_status}")  # Debug
     
     conn = get_db()
