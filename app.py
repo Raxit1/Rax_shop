@@ -341,8 +341,27 @@ def place_order():
         traceback.print_exc()
         return f"Error placing order: {str(e)}", 500
 
-@app.route("/orders")
-def orders():
+@app.route("/admin/orders")
+def admin_orders():
+    if "admin" not in session:
+        return redirect("/admin/login")
+    
+    conn = get_db()
+    orders = conn.execute("""
+        SELECT o.order_id, o.full_name, o.email, o.total_amount, o.status, o.order_date,
+               s.tracking_number, s.current_location
+        FROM orders o
+        LEFT JOIN shipments s ON o.order_id = s.order_id
+        ORDER BY o.order_date DESC
+    """).fetchall()
+    conn.close()
+    
+    # Debug print to verify order IDs
+    print("=== ADMIN ORDERS ===")
+    for order in orders:
+        print(f"Order ID: {order[0]}, Status: {order[4]}")
+    
+    return render_template("admin_orders.html", admin_name=session["admin"], orders=orders)
     if "user" not in session:
         return redirect("/")
     
