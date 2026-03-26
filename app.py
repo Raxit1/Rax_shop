@@ -6,6 +6,7 @@ import random
 import string
 import os
 
+app = Flask(__name__)
 # Use environment secret key or default
 app.secret_key = os.environ.get('SECRET_KEY', 'secret123')
 
