@@ -126,17 +126,17 @@ if products_count == 0:
         # Electronics
         ("PROD-ELEC-001", "iPhone 15 Pro", "Electronics", 999.99, "Latest flagship smartphone", "https://images.pexels.com/photos/404280/pexels-photo-404280.jpeg?w=400&h=400&fit=crop", 50, 4.9, "A17 Pro Chip,48MP Camera,Titanium Design"),
         ("PROD-ELEC-002", "MacBook Air M2", "Electronics", 1099.99, "Powerful laptop with M2 chip", "https://images.pexels.com/photos/18105/pexels-photo.jpg?w=400&h=400&fit=crop", 30, 4.9, "M2 Chip,13.6 inch Display,18 Hour Battery"),
-        ("PROD-ELEC-003", "Sony WH-1000XM5", "Electronics", 399.99, "Industry-leading noise canceling headphones", "https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?w=400&h=400&fit=crop", 60, 4.8, "Noise Cancelling,30hr Battery,Hi-Res Audio"),
+        ("PROD-ELEC-003", "Sony Headphones", "Electronics", 399.99, "Noise canceling headphones", "https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?w=400&h=400&fit=crop", 60, 4.8, "Noise Cancelling,30hr Battery"),
         
         # Books
-        ("PROD-BOOK-001", "The Great Gatsby", "Books", 14.99, "Classic American novel", "https://images.pexels.com/photos/256450/pexels-photo-256450.jpeg?w=400&h=400&fit=crop", 100, 4.7, "Classic Literature,192 Pages,Hardcover"),
-        ("PROD-BOOK-002", "Python Crash Course", "Books", 39.99, "Learn Python programming fast", "https://images.pexels.com/photos/290595/pexels-photo-290595.jpeg?w=400&h=400&fit=crop", 75, 4.8, "Programming,560 Pages,Hands-on Projects"),
-        ("PROD-BOOK-003", "Atomic Habits", "Books", 19.99, "Transform your life with small habits", "https://images.pexels.com/photos/261763/pexels-photo-261763.jpeg?w=400&h=400&fit=crop", 200, 4.9, "Self Help,320 Pages,Bestseller"),
+        ("PROD-BOOK-001", "The Great Gatsby", "Books", 14.99, "Classic American novel", "https://images.pexels.com/photos/256450/pexels-photo-256450.jpeg?w=400&h=400&fit=crop", 100, 4.7, "Classic Literature,192 Pages"),
+        ("PROD-BOOK-002", "Python Crash Course", "Books", 39.99, "Learn Python fast", "https://images.pexels.com/photos/290595/pexels-photo-290595.jpeg?w=400&h=400&fit=crop", 75, 4.8, "Programming,560 Pages"),
+        ("PROD-BOOK-003", "Atomic Habits", "Books", 19.99, "Transform your life", "https://images.pexels.com/photos/261763/pexels-photo-261763.jpeg?w=400&h=400&fit=crop", 200, 4.9, "Self Help,320 Pages"),
         
         # Grocery
-        ("PROD-GROC-001", "Fresh Potatoes (1kg)", "Grocery", 3.99, "Fresh farm potatoes", "https://images.pexels.com/photos/2286776/pexels-photo-2286776.jpeg?w=400&h=400&fit=crop", 500, 4.7, "Fresh Harvest,Rich in Potassium"),
-        ("PROD-GROC-002", "Fresh Apples (1kg)", "Grocery", 4.99, "Fresh crisp apples", "https://images.pexels.com/photos/102104/pexels-photo-102104.jpeg?w=400&h=400&fit=crop", 300, 4.8, "Organic,Fresh Picked"),
-        ("PROD-GROC-003", "Fresh Onions (1kg)", "Grocery", 2.99, "Fresh red onions", "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg?w=400&h=400&fit=crop", 400, 4.7, "Fresh Harvest,Strong Flavor"),
+        ("PROD-GROC-001", "Fresh Potatoes", "Grocery", 3.99, "Fresh farm potatoes", "https://images.pexels.com/photos/2286776/pexels-photo-2286776.jpeg?w=400&h=400&fit=crop", 500, 4.7, "Fresh Harvest,Rich in Potassium"),
+        ("PROD-GROC-002", "Fresh Apples", "Grocery", 4.99, "Fresh crisp apples", "https://images.pexels.com/photos/102104/pexels-photo-102104.jpeg?w=400&h=400&fit=crop", 300, 4.8, "Organic,Fresh Picked"),
+        ("PROD-GROC-003", "Fresh Onions", "Grocery", 2.99, "Fresh red onions", "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg?w=400&h=400&fit=crop", 400, 4.7, "Fresh Harvest,Strong Flavor"),
         
         # Fashion
         ("PROD-FASH-001", "Men's Formal Shirt", "Fashion", 49.99, "Premium formal shirt", "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?w=400&h=400&fit=crop", 200, 4.6, "100% Cotton,Regular Fit"),
@@ -224,117 +224,25 @@ def dashboard():
 def electronics():
     if "user" not in session:
         return redirect("/")
-    
-    conn = get_db()
-    products = conn.execute("""
-        SELECT product_id, name, price, description, image_url, stock, rating, features
-        FROM products 
-        WHERE category = 'Electronics'
-        ORDER BY created_at DESC
-    """).fetchall()
-    conn.close()
-    
-    products_list = []
-    for p in products:
-        products_list.append({
-            'product_id': p[0],
-            'name': p[1],
-            'price': p[2],
-            'description': p[3],
-            'image_url': p[4],
-            'stock': p[5],
-            'rating': p[6],
-            'features': p[7] or ''
-        })
-    
-    return render_template("dynamic_category.html", user=session["user"], products=products_list, category="Electronics")
+    return render_template("electronics.html", user=session["user"])
 
 @app.route("/books")
 def books():
     if "user" not in session:
         return redirect("/")
-    
-    conn = get_db()
-    products = conn.execute("""
-        SELECT product_id, name, price, description, image_url, stock, rating, features
-        FROM products 
-        WHERE category = 'Books'
-        ORDER BY created_at DESC
-    """).fetchall()
-    conn.close()
-    
-    products_list = []
-    for p in products:
-        products_list.append({
-            'product_id': p[0],
-            'name': p[1],
-            'price': p[2],
-            'description': p[3],
-            'image_url': p[4],
-            'stock': p[5],
-            'rating': p[6],
-            'features': p[7] or ''
-        })
-    
-    return render_template("dynamic_category.html", user=session["user"], products=products_list, category="Books")
+    return render_template("books.html", user=session["user"])
 
 @app.route("/grocery")
 def grocery():
     if "user" not in session:
         return redirect("/")
-    
-    conn = get_db()
-    products = conn.execute("""
-        SELECT product_id, name, price, description, image_url, stock, rating, features
-        FROM products 
-        WHERE category = 'Grocery'
-        ORDER BY created_at DESC
-    """).fetchall()
-    conn.close()
-    
-    products_list = []
-    for p in products:
-        products_list.append({
-            'product_id': p[0],
-            'name': p[1],
-            'price': p[2],
-            'description': p[3],
-            'image_url': p[4],
-            'stock': p[5],
-            'rating': p[6],
-            'features': p[7] or ''
-        })
-    
-    return render_template("dynamic_category.html", user=session["user"], products=products_list, category="Grocery")
+    return render_template("grocery.html", user=session["user"])
 
 @app.route("/fashion")
 def fashion():
     if "user" not in session:
         return redirect("/")
-    
-    conn = get_db()
-    products = conn.execute("""
-        SELECT product_id, name, price, description, image_url, stock, rating, features
-        FROM products 
-        WHERE category = 'Fashion'
-        ORDER BY created_at DESC
-    """).fetchall()
-    conn.close()
-    
-    products_list = []
-    for p in products:
-        products_list.append({
-            'product_id': p[0],
-            'name': p[1],
-            'price': p[2],
-            'description': p[3],
-            'image_url': p[4],
-            'stock': p[5],
-            'rating': p[6],
-            'features': p[7] or ''
-        })
-    
-    return render_template("dynamic_category.html", user=session["user"], products=products_list, category="Fashion")
+    return render_template("fashion.html", user=session["user"])
 
 @app.route("/cart")
 def cart():
@@ -683,8 +591,6 @@ def update_order_status():
     except Exception as e:
         conn.close()
         return jsonify({"error": str(e)}), 500
-
-# ==================== PRODUCT MANAGEMENT ====================
 
 @app.route("/admin/products")
 def admin_products():
