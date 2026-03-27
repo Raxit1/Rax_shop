@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Rax Shop - Admin Panel</title>
+    <title>Admin Panel - Rax Shop</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -45,26 +45,15 @@
         margin-bottom: 20px;
       }
 
-      .admin-sidebar .brand img {
-        width: 100px;
-        height: auto;
-        margin-bottom: 15px;
-        background: white;
-        padding: 8px;
-        border-radius: 12px;
-      }
-
       .admin-sidebar .brand h3 {
-        margin: 10px 0 5px 0;
-        font-size: 18px;
-        color: white;
+        margin: 0;
+        font-size: 22px;
       }
 
       .admin-sidebar .brand p {
         font-size: 12px;
         opacity: 0.8;
-        margin: 0;
-        color: rgba(255, 255, 255, 0.9);
+        margin: 5px 0 0;
       }
 
       .admin-sidebar .nav-item {
@@ -102,37 +91,11 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        flex-wrap: wrap;
-        gap: 15px;
       }
 
-      .header-logo {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-
-      .header-logo img {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        object-fit: cover;
-        background: white;
-        padding: 5px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      }
-
-      .header-logo span {
-        font-size: 18px;
-        font-weight: 600;
+      .admin-header h4 {
+        margin: 0;
         color: #333;
-      }
-
-      .header-logo span small {
-        font-size: 12px;
-        font-weight: normal;
-        color: #666;
-        display: block;
       }
 
       .admin-header .user-info {
@@ -144,9 +107,6 @@
       .admin-header .user-name {
         font-weight: 600;
         color: #333;
-        background: #f0f0f0;
-        padding: 8px 15px;
-        border-radius: 20px;
       }
 
       .logout-btn {
@@ -156,15 +116,11 @@
         border-radius: 6px;
         text-decoration: none;
         transition: 0.3s;
-        display: flex;
-        align-items: center;
-        gap: 8px;
       }
 
       .logout-btn:hover {
         background: #d63a3a;
         color: white;
-        transform: translateY(-2px);
       }
 
       @media (max-width: 768px) {
@@ -179,13 +135,6 @@
         .admin-content {
           margin-left: 0;
         }
-        .admin-header {
-          flex-direction: column;
-          text-align: center;
-        }
-        .header-logo {
-          justify-content: center;
-        }
       }
     </style>
   </head>
@@ -193,12 +142,8 @@
     <div class="admin-wrapper">
       <div class="admin-sidebar">
         <div class="brand">
-          <img
-            src="{{ url_for('static', filename='logo.png') }}"
-            alt="Rax Shop"
-          />
-          <h3>Rax Shop Management</h3>
-          <p>Admin Dashboard</p>
+          <h3><i class="fas fa-crown"></i> Admin Panel</h3>
+          <p>Rax Shop Management</p>
         </div>
         <div class="nav-item">
           <a href="/admin/dashboard">
@@ -220,20 +165,9 @@
 
       <div class="admin-content">
         <div class="admin-header">
-          <div class="header-logo">
-            <img
-              src="{{ url_for('static', filename='logo.png') }}"
-              alt="Rax Shop"
-            />
-            <span>
-              Rax Shop Admin
-              <small>Management Panel</small>
-            </span>
-          </div>
+          <h4><i class="fas fa-chart-line"></i> Welcome, {{ admin_name }}!</h4>
           <div class="user-info">
-            <span class="user-name">
-              <i class="fas fa-user-circle"></i> {{ admin_name }}
-            </span>
+            <span class="user-name">{{ admin_name }}</span>
             <a href="/admin/logout" class="logout-btn">
               <i class="fas fa-sign-out-alt"></i> Logout
             </a>
