@@ -22,7 +22,7 @@ def get_db():
 # Create tables with admin support
 conn = get_db()
 
-# Users table with admin column
+# Users table
 conn.execute("""
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -119,6 +119,40 @@ if not admin:
         VALUES ('admin', 'admin@example.com', '9999999999', ?, 1)
     """, (admin_password,))
 
+# Add sample products if no products exist
+products_count = conn.execute("SELECT COUNT(*) FROM products").fetchone()[0]
+if products_count == 0:
+    sample_products = [
+        # Electronics
+        ("PROD-ELEC-001", "iPhone 15 Pro", "Electronics", 999.99, "Latest flagship smartphone", "https://images.pexels.com/photos/404280/pexels-photo-404280.jpeg?w=400&h=400&fit=crop", 50, 4.9, "A17 Pro Chip,48MP Camera,Titanium Design"),
+        ("PROD-ELEC-002", "MacBook Air M2", "Electronics", 1099.99, "Powerful laptop with M2 chip", "https://images.pexels.com/photos/18105/pexels-photo.jpg?w=400&h=400&fit=crop", 30, 4.9, "M2 Chip,13.6 inch Display,18 Hour Battery"),
+        ("PROD-ELEC-003", "Sony WH-1000XM5", "Electronics", 399.99, "Industry-leading noise canceling headphones", "https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?w=400&h=400&fit=crop", 60, 4.8, "Noise Cancelling,30hr Battery,Hi-Res Audio"),
+        
+        # Books
+        ("PROD-BOOK-001", "The Great Gatsby", "Books", 14.99, "Classic American novel", "https://images.pexels.com/photos/256450/pexels-photo-256450.jpeg?w=400&h=400&fit=crop", 100, 4.7, "Classic Literature,192 Pages,Hardcover"),
+        ("PROD-BOOK-002", "Python Crash Course", "Books", 39.99, "Learn Python programming fast", "https://images.pexels.com/photos/290595/pexels-photo-290595.jpeg?w=400&h=400&fit=crop", 75, 4.8, "Programming,560 Pages,Hands-on Projects"),
+        ("PROD-BOOK-003", "Atomic Habits", "Books", 19.99, "Transform your life with small habits", "https://images.pexels.com/photos/261763/pexels-photo-261763.jpeg?w=400&h=400&fit=crop", 200, 4.9, "Self Help,320 Pages,Bestseller"),
+        
+        # Grocery
+        ("PROD-GROC-001", "Fresh Potatoes (1kg)", "Grocery", 3.99, "Fresh farm potatoes", "https://images.pexels.com/photos/2286776/pexels-photo-2286776.jpeg?w=400&h=400&fit=crop", 500, 4.7, "Fresh Harvest,Rich in Potassium"),
+        ("PROD-GROC-002", "Fresh Apples (1kg)", "Grocery", 4.99, "Fresh crisp apples", "https://images.pexels.com/photos/102104/pexels-photo-102104.jpeg?w=400&h=400&fit=crop", 300, 4.8, "Organic,Fresh Picked"),
+        ("PROD-GROC-003", "Fresh Onions (1kg)", "Grocery", 2.99, "Fresh red onions", "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg?w=400&h=400&fit=crop", 400, 4.7, "Fresh Harvest,Strong Flavor"),
+        
+        # Fashion
+        ("PROD-FASH-001", "Men's Formal Shirt", "Fashion", 49.99, "Premium formal shirt", "https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?w=400&h=400&fit=crop", 200, 4.6, "100% Cotton,Regular Fit"),
+        ("PROD-FASH-002", "Women's Summer Dress", "Fashion", 79.99, "Elegant floral dress", "https://images.pexels.com/photos/1462637/pexels-photo-1462637.jpeg?w=400&h=400&fit=crop", 150, 4.8, "Floral Print,Maxi Length"),
+        ("PROD-FASH-003", "Denim Jeans", "Fashion", 69.99, "Classic denim jeans", "https://images.pexels.com/photos/1598507/pexels-photo-1598507.jpeg?w=400&h=400&fit=crop", 300, 4.5, "Premium Denim,Slim Fit"),
+    ]
+    
+    for product in sample_products:
+        try:
+            conn.execute("""
+                INSERT INTO products (product_id, name, category, price, description, image_url, stock, rating, features)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, product)
+        except:
+            pass
+
 conn.commit()
 conn.close()
 
@@ -190,25 +224,117 @@ def dashboard():
 def electronics():
     if "user" not in session:
         return redirect("/")
-    return render_template("electronics.html", user=session["user"])
+    
+    conn = get_db()
+    products = conn.execute("""
+        SELECT product_id, name, price, description, image_url, stock, rating, features
+        FROM products 
+        WHERE category = 'Electronics'
+        ORDER BY created_at DESC
+    """).fetchall()
+    conn.close()
+    
+    products_list = []
+    for p in products:
+        products_list.append({
+            'product_id': p[0],
+            'name': p[1],
+            'price': p[2],
+            'description': p[3],
+            'image_url': p[4],
+            'stock': p[5],
+            'rating': p[6],
+            'features': p[7] or ''
+        })
+    
+    return render_template("dynamic_category.html", user=session["user"], products=products_list, category="Electronics")
 
 @app.route("/books")
 def books():
     if "user" not in session:
         return redirect("/")
-    return render_template("books.html", user=session["user"])
+    
+    conn = get_db()
+    products = conn.execute("""
+        SELECT product_id, name, price, description, image_url, stock, rating, features
+        FROM products 
+        WHERE category = 'Books'
+        ORDER BY created_at DESC
+    """).fetchall()
+    conn.close()
+    
+    products_list = []
+    for p in products:
+        products_list.append({
+            'product_id': p[0],
+            'name': p[1],
+            'price': p[2],
+            'description': p[3],
+            'image_url': p[4],
+            'stock': p[5],
+            'rating': p[6],
+            'features': p[7] or ''
+        })
+    
+    return render_template("dynamic_category.html", user=session["user"], products=products_list, category="Books")
 
 @app.route("/grocery")
 def grocery():
     if "user" not in session:
         return redirect("/")
-    return render_template("grocery.html", user=session["user"])
+    
+    conn = get_db()
+    products = conn.execute("""
+        SELECT product_id, name, price, description, image_url, stock, rating, features
+        FROM products 
+        WHERE category = 'Grocery'
+        ORDER BY created_at DESC
+    """).fetchall()
+    conn.close()
+    
+    products_list = []
+    for p in products:
+        products_list.append({
+            'product_id': p[0],
+            'name': p[1],
+            'price': p[2],
+            'description': p[3],
+            'image_url': p[4],
+            'stock': p[5],
+            'rating': p[6],
+            'features': p[7] or ''
+        })
+    
+    return render_template("dynamic_category.html", user=session["user"], products=products_list, category="Grocery")
 
 @app.route("/fashion")
 def fashion():
     if "user" not in session:
         return redirect("/")
-    return render_template("fashion.html", user=session["user"])
+    
+    conn = get_db()
+    products = conn.execute("""
+        SELECT product_id, name, price, description, image_url, stock, rating, features
+        FROM products 
+        WHERE category = 'Fashion'
+        ORDER BY created_at DESC
+    """).fetchall()
+    conn.close()
+    
+    products_list = []
+    for p in products:
+        products_list.append({
+            'product_id': p[0],
+            'name': p[1],
+            'price': p[2],
+            'description': p[3],
+            'image_url': p[4],
+            'stock': p[5],
+            'rating': p[6],
+            'features': p[7] or ''
+        })
+    
+    return render_template("dynamic_category.html", user=session["user"], products=products_list, category="Fashion")
 
 @app.route("/cart")
 def cart():
@@ -267,11 +393,9 @@ def place_order():
     if "user" not in session or "cart" not in session or not session["cart"]:
         return redirect("/")
     
-    # Generate Order ID
     order_id = "ORD-" + ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
     tracking_number = "TRK-" + ''.join(random.choices(string.digits, k=12))
     
-    # Get form data
     full_name = request.form.get("full_name", "")
     email = request.form.get("email", "")
     phone = request.form.get("phone", "")
@@ -281,11 +405,9 @@ def place_order():
     payment_method = request.form.get("payment_method", "")
     notes = request.form.get("notes", "")
     
-    # Validate required fields
     if not all([full_name, email, phone, address, city, postal_code, payment_method]):
         return "Please fill all required fields", 400
     
-    # Calculate total
     cart_items = session["cart"]
     subtotal = sum(item["price"] * item["quantity"] for item in cart_items)
     total_with_tax = subtotal * 1.1
@@ -293,27 +415,23 @@ def place_order():
     try:
         conn = get_db()
         
-        # Get user ID
         user_data = conn.execute(
             "SELECT id FROM users WHERE username = ?",
             (session["user"],)
         ).fetchone()
         user_id = user_data[0] if user_data else None
         
-        # Insert order
         conn.execute("""
             INSERT INTO orders (user_id, order_id, full_name, email, phone, address, city, postal_code, payment_method, notes, total_amount, status)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Processing')
         """, (user_id, order_id, full_name, email, phone, address, city, postal_code, payment_method, notes, total_with_tax))
         
-        # Insert order items
         for item in cart_items:
             conn.execute("""
                 INSERT INTO order_items (order_id, product_name, product_category, quantity, price, subtotal)
                 VALUES (?, ?, ?, ?, ?, ?)
             """, (order_id, item["name"], item.get("category", "General"), item["quantity"], item["price"], item["price"] * item["quantity"]))
         
-        # Insert shipment record
         estimated_delivery = (datetime.datetime.now() + datetime.timedelta(days=5)).strftime("%Y-%m-%d")
         conn.execute("""
             INSERT INTO shipments (order_id, tracking_number, estimated_delivery, current_location, status)
@@ -323,7 +441,6 @@ def place_order():
         conn.commit()
         conn.close()
         
-        # Clear cart from session
         order_items = session["cart"].copy()
         session.pop("cart", None)
         session.modified = True
@@ -337,31 +454,10 @@ def place_order():
         
     except Exception as e:
         print(f"Error placing order: {e}")
-        import traceback
-        traceback.print_exc()
         return f"Error placing order: {str(e)}", 500
 
-@app.route("/admin/orders")
-def admin_orders():
-    if "admin" not in session:
-        return redirect("/admin/login")
-    
-    conn = get_db()
-    orders = conn.execute("""
-        SELECT o.order_id, o.full_name, o.email, o.total_amount, o.status, o.order_date,
-               s.tracking_number, s.current_location
-        FROM orders o
-        LEFT JOIN shipments s ON o.order_id = s.order_id
-        ORDER BY o.order_date DESC
-    """).fetchall()
-    conn.close()
-    
-    # Debug print to verify order IDs
-    print("=== ADMIN ORDERS ===")
-    for order in orders:
-        print(f"Order ID: {order[0]}, Status: {order[4]}")
-    
-    return render_template("admin_orders.html", admin_name=session["admin"], orders=orders)
+@app.route("/orders")
+def orders():
     if "user" not in session:
         return redirect("/")
     
@@ -376,7 +472,6 @@ def admin_orders():
     
     user_id = user_data[0]
     
-    # Get ALL orders for this user
     orders_data = conn.execute("""
         SELECT o.order_id, o.full_name, o.total_amount, o.order_date, o.status, 
                s.tracking_number, s.current_location, s.estimated_delivery
@@ -386,15 +481,10 @@ def admin_orders():
         ORDER BY o.order_date DESC
     """, (user_id,)).fetchall()
     
-    # Debug prints
-    print(f"\n=== ORDERS FOR USER ID {user_id} ===")
-    for order in orders_data:
-        print(f"Order: {order[0]} | Status: {order[4]} | Amount: {order[2]}")
-    print("=" * 40)
-    
     conn.close()
     
     return render_template("orders.html", user=session["user"], orders=orders_data)
+
 @app.route("/track_order/<order_id>")
 def track_order(order_id):
     if "user" not in session:
@@ -534,6 +624,7 @@ def admin_order_detail(order_id):
                          order=order, 
                          items=items,
                          status_history=status_history)
+
 @app.route("/admin/update_order_status", methods=["POST"])
 def update_order_status():
     if "admin" not in session:
@@ -543,45 +634,35 @@ def update_order_status():
     order_id = data.get("order_id")
     new_status = data.get("status")
     
-    if not order_id:
-        return jsonify({"error": "No order_id provided"}), 400
-    
-    if not new_status:
-        return jsonify({"error": "No status provided"}), 400
+    if not order_id or not new_status:
+        return jsonify({"error": "Missing order_id or status"}), 400
     
     conn = get_db()
     
     try:
-        # Check if order exists
-        order = conn.execute("SELECT order_id, status FROM orders WHERE order_id = ?", (order_id,)).fetchone()
-        
+        order = conn.execute("SELECT order_id FROM orders WHERE order_id = ?", (order_id,)).fetchone()
         if not order:
             conn.close()
             return jsonify({"error": f"Order {order_id} not found"}), 404
         
-        # Update order status
         conn.execute("UPDATE orders SET status = ? WHERE order_id = ?", (new_status, order_id))
         
-        # Update or create shipment
         shipment = conn.execute("SELECT order_id FROM shipments WHERE order_id = ?", (order_id,)).fetchone()
         
         if shipment:
             if new_status == "Shipped":
                 conn.execute("""
-                    UPDATE shipments 
-                    SET status = ?, shipped_date = CURRENT_TIMESTAMP, current_location = 'In Transit'
+                    UPDATE shipments SET status = ?, shipped_date = CURRENT_TIMESTAMP, current_location = 'In Transit'
                     WHERE order_id = ?
                 """, (new_status, order_id))
             elif new_status == "Delivered":
                 conn.execute("""
-                    UPDATE shipments 
-                    SET status = ?, current_location = 'Delivered to Customer'
+                    UPDATE shipments SET status = ?, current_location = 'Delivered to Customer'
                     WHERE order_id = ?
                 """, (new_status, order_id))
             else:
                 conn.execute("UPDATE shipments SET status = ? WHERE order_id = ?", (new_status, order_id))
         else:
-            # Create new shipment
             tracking_number = "TRK-" + ''.join(random.choices(string.digits, k=12))
             estimated_delivery = (datetime.datetime.now() + datetime.timedelta(days=5)).strftime("%Y-%m-%d")
             conn.execute("""
@@ -589,7 +670,6 @@ def update_order_status():
                 VALUES (?, ?, ?, 'Warehouse', ?)
             """, (order_id, tracking_number, estimated_delivery, new_status))
         
-        # Add to history
         conn.execute("""
             INSERT INTO order_status_history (order_id, status, updated_by, notes)
             VALUES (?, ?, ?, ?)
@@ -603,239 +683,9 @@ def update_order_status():
     except Exception as e:
         conn.close()
         return jsonify({"error": str(e)}), 500
-    if "admin" not in session:
-        return jsonify({"error": "Unauthorized"}), 401
-    
-    data = request.json
-    order_id = data.get("order_id")
-    new_status = data.get("status")
-    
-    if not order_id or not new_status:
-        return jsonify({"error": "Missing order_id or status"}), 400
-    
-    print(f"🔵 Updating order {order_id} to status: {new_status}")
-    
-    conn = get_db()
-    
-    try:
-        # First check if order exists
-        check_order = conn.execute("SELECT order_id FROM orders WHERE order_id = ?", (order_id,)).fetchone()
-        
-        if not check_order:
-            conn.close()
-            return jsonify({"error": f"Order {order_id} not found"}), 404
-        
-        # Update order status
-        conn.execute("UPDATE orders SET status = ? WHERE order_id = ?", (new_status, order_id))
-        print(f"✅ Orders table updated for {order_id}")
-        
-        # Check if shipment exists
-        check_shipment = conn.execute("SELECT order_id FROM shipments WHERE order_id = ?", (order_id,)).fetchone()
-        
-        if check_shipment:
-            # Update existing shipment
-            if new_status == "Shipped":
-                conn.execute("""
-                    UPDATE shipments 
-                    SET status = ?, 
-                        shipped_date = CURRENT_TIMESTAMP, 
-                        current_location = 'In Transit'
-                    WHERE order_id = ?
-                """, (new_status, order_id))
-                print(f"✅ Shipment updated to Shipped")
-                
-            elif new_status == "Delivered":
-                conn.execute("""
-                    UPDATE shipments 
-                    SET status = ?, 
-                        current_location = 'Delivered to Customer'
-                    WHERE order_id = ?
-                """, (new_status, order_id))
-                print(f"✅ Shipment updated to Delivered")
-                
-            else:
-                conn.execute("UPDATE shipments SET status = ? WHERE order_id = ?", (new_status, order_id))
-                print(f"✅ Shipment status updated")
-        else:
-            # Create new shipment
-            import random
-            import string
-            tracking_number = "TRK-" + ''.join(random.choices(string.digits, k=12))
-            import datetime
-            estimated_delivery = (datetime.datetime.now() + datetime.timedelta(days=5)).strftime("%Y-%m-%d")
-            conn.execute("""
-                INSERT INTO shipments (order_id, tracking_number, estimated_delivery, current_location, status)
-                VALUES (?, ?, ?, 'Warehouse', ?)
-            """, (order_id, tracking_number, estimated_delivery, new_status))
-            print(f"✅ New shipment created for {order_id}")
-        
-        # Add to status history
-        conn.execute("""
-            INSERT INTO order_status_history (order_id, status, updated_by, notes)
-            VALUES (?, ?, ?, ?)
-        """, (order_id, new_status, session["admin"], f"Status updated to {new_status} by admin"))
-        
-        conn.commit()
-        
-        # Verify the update
-        verify = conn.execute("SELECT status FROM orders WHERE order_id = ?", (order_id,)).fetchone()
-        if verify:
-            print(f"🟢 Verified: Order {order_id} now has status: {verify[0]}")
-        else:
-            print(f"🔴 Verification failed")
-        
-        conn.close()
-        return jsonify({"success": True, "message": f"Order status updated to {new_status}"})
-        
-    except Exception as e:
-        print(f"🔴 Error: {e}")
-        import traceback
-        traceback.print_exc()
-        conn.close()
-        return jsonify({"error": str(e)}), 500
-    if "admin" not in session:
-        return jsonify({"error": "Unauthorized"}), 401
-    
-    data = request.json
-    order_id = data.get("order_id")
-    new_status = data.get("status")
-    
-    if not order_id or not new_status:
-        return jsonify({"error": "Missing order_id or status"}), 400
-    
-    print(f"🟡 Updating order {order_id} to status: {new_status}")
-    
-    conn = get_db()
-    
-    try:
-        # First check if order exists
-        check_order = conn.execute("SELECT order_id FROM orders WHERE order_id = ?", (order_id,)).fetchone()
-        
-        if not check_order:
-            conn.close()
-            return jsonify({"error": "Order not found"}), 404
-        
-        # Update order status
-        conn.execute("UPDATE orders SET status = ? WHERE order_id = ?", (new_status, order_id))
-        print(f"✅ Orders table updated for {order_id}")
-        
-        # Check if shipment exists
-        check_shipment = conn.execute("SELECT order_id FROM shipments WHERE order_id = ?", (order_id,)).fetchone()
-        
-        if check_shipment:
-            # Update shipment if it exists
-            if new_status == "Shipped":
-                conn.execute("""
-                    UPDATE shipments 
-                    SET status = ?, 
-                        shipped_date = CURRENT_TIMESTAMP, 
-                        current_location = 'In Transit'
-                    WHERE order_id = ?
-                """, (new_status, order_id))
-                print(f"✅ Shipment updated to Shipped")
-                
-            elif new_status == "Delivered":
-                conn.execute("""
-                    UPDATE shipments 
-                    SET status = ?, 
-                        current_location = 'Delivered to Customer'
-                    WHERE order_id = ?
-                """, (new_status, order_id))
-                print(f"✅ Shipment updated to Delivered")
-                
-            else:
-                conn.execute("UPDATE shipments SET status = ? WHERE order_id = ?", (new_status, order_id))
-        else:
-            # Create shipment if it doesn't exist
-            tracking_number = "TRK-" + ''.join(random.choices(string.digits, k=12))
-            estimated_delivery = (datetime.datetime.now() + datetime.timedelta(days=5)).strftime("%Y-%m-%d")
-            conn.execute("""
-                INSERT INTO shipments (order_id, tracking_number, estimated_delivery, current_location, status)
-                VALUES (?, ?, ?, 'Warehouse', ?)
-            """, (order_id, tracking_number, estimated_delivery, new_status))
-            print(f"✅ New shipment created for {order_id}")
-        
-        # Add to status history
-        conn.execute("""
-            INSERT INTO order_status_history (order_id, status, updated_by, notes)
-            VALUES (?, ?, ?, ?)
-        """, (order_id, new_status, session["admin"], f"Status updated to {new_status} by admin"))
-        
-        conn.commit()
-        
-        # Verify the update
-        verify = conn.execute("SELECT status FROM orders WHERE order_id = ?", (order_id,)).fetchone()
-        if verify:
-            print(f"🟢 Verified: Order {order_id} now has status: {verify[0]}")
-        else:
-            print(f"🔴 Verification failed: Order {order_id} not found after update")
-        
-        conn.close()
-        return jsonify({"success": True, "message": f"Order status updated to {new_status}"})
-        
-    except Exception as e:
-        print(f"🔴 Error: {e}")
-        conn.close()
-        return jsonify({"error": str(e)}), 500
-    if "admin" not in session:
-        return jsonify({"error": "Unauthorized"}), 401
-    
-    data = request.json
-    order_id = data.get("order_id")
-    new_status = data.get("status")
-    
-    print(f"Updating order {order_id} to status: {new_status}")  # Debug
-    
-    conn = get_db()
-    
-    try:
-        # Update order status in orders table
-        conn.execute("UPDATE orders SET status = ? WHERE order_id = ?", (new_status, order_id))
-        print(f"✓ Orders table updated for {order_id}")
-        
-        # Update shipment table
-        if new_status == "Shipped":
-            conn.execute("""
-                UPDATE shipments 
-                SET status = ?, 
-                    shipped_date = CURRENT_TIMESTAMP, 
-                    current_location = 'In Transit'
-                WHERE order_id = ?
-            """, (new_status, order_id))
-            print(f"✓ Shipment updated to Shipped")
-            
-        elif new_status == "Delivered":
-            conn.execute("""
-                UPDATE shipments 
-                SET status = ?, 
-                    current_location = 'Delivered to Customer'
-                WHERE order_id = ?
-            """, (new_status, order_id))
-            print(f"✓ Shipment updated to Delivered")
-            
-        else:
-            conn.execute("UPDATE shipments SET status = ? WHERE order_id = ?", (new_status, order_id))
-        
-        # Add to status history
-        conn.execute("""
-            INSERT INTO order_status_history (order_id, status, updated_by, notes)
-            VALUES (?, ?, ?, ?)
-        """, (order_id, new_status, session["admin"], f"Status updated to {new_status} by admin"))
-        
-        conn.commit()
-        print(f"✓ All changes committed for order {order_id}")
-        
-        # Verify the update
-        verify = conn.execute("SELECT status FROM orders WHERE order_id = ?", (order_id,)).fetchone()
-        print(f"Verification: Order {order_id} now has status: {verify[0]}")
-        
-        conn.close()
-        return jsonify({"success": True, "message": f"Order status updated to {new_status}"})
-        
-    except Exception as e:
-        print(f"Error: {e}")
-        conn.close()
-        return jsonify({"error": str(e)}), 500
+
+# ==================== PRODUCT MANAGEMENT ====================
+
 @app.route("/admin/products")
 def admin_products():
     if "admin" not in session:
@@ -946,13 +796,10 @@ def admin_users():
         return redirect("/admin/login")
     
     conn = get_db()
-    
-    # Check if created_at column exists
     cursor = conn.cursor()
     cursor.execute("PRAGMA table_info(users)")
     columns = [column[1] for column in cursor.fetchall()]
     
-    # If created_at exists, include it, otherwise don't
     if 'created_at' in columns:
         users = conn.execute("SELECT id, username, email, MobileNo, is_admin, created_at FROM users ORDER BY id DESC").fetchall()
     else:
@@ -983,39 +830,6 @@ def admin_logout():
     session.pop("admin", None)
     session.pop("admin_id", None)
     return redirect("/admin/login")
-
-# ==================== SAMPLE PRODUCT DATA ====================
-
-@app.route("/admin/seed_products")
-def seed_products():
-    if "admin" not in session:
-        return "Unauthorized", 401
-    
-    sample_products = [
-        ("PROD-ELEC-001", "Smartphone X", "Electronics", 599.99, "Latest flagship smartphone", "https://images.unsplash.com/photo-1511707267537-b85faf00021e", 50, 4.8, "6.7 inch Display,5G,12MP Camera"),
-        ("PROD-ELEC-002", "Laptop Pro", "Electronics", 1299.99, "High-performance laptop", "https://images.unsplash.com/photo-1588872657840-790ff3bda791", 30, 4.9, "Intel i7,16GB RAM,512GB SSD"),
-        ("PROD-BOOK-001", "The Great Novel", "Books", 24.99, "Best selling fiction novel", "https://images.unsplash.com/photo-1544947950-fa07a98d237f", 100, 4.8, "Hardcover,450 Pages"),
-        ("PROD-BOOK-002", "Python Programming", "Books", 34.99, "Learn Python programming", "https://images.unsplash.com/photo-1580894742597-87bc8789db3d", 75, 4.9, "600 Pages,Code Examples"),
-        ("PROD-FASH-001", "Men's Casual Shirt", "Fashion", 29.99, "Comfortable cotton shirt", "https://images.unsplash.com/photo-1598032895397-b9472444bf93", 200, 4.5, "100% Cotton"),
-        ("PROD-FASH-002", "Women's Dress", "Fashion", 49.99, "Elegant summer dress", "https://images.unsplash.com/photo-1539008835657-9e8e9680c956", 150, 4.6, "Cotton Blend"),
-        ("PROD-GROC-001", "Organic Apples", "Grocery", 4.99, "Fresh organic apples", "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6", 500, 4.7, "1kg Pack"),
-        ("PROD-GROC-002", "Whole Wheat Bread", "Grocery", 2.99, "Healthy whole wheat bread", "https://images.unsplash.com/photo-1509440159596-0249088772ff", 300, 4.5, "Preservative Free"),
-    ]
-    
-    conn = get_db()
-    for product in sample_products:
-        try:
-            conn.execute("""
-                INSERT INTO products (product_id, name, category, price, description, image_url, stock, rating, features)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, product)
-        except:
-            pass
-    
-    conn.commit()
-    conn.close()
-    
-    return "Sample products added successfully!"
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

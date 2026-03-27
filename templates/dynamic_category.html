@@ -1,0 +1,559 @@
+{% extends "base.html" %} {% block content %}
+<style>
+  * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+  }
+
+  body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f5f5;
+  }
+
+  .items {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+  }
+
+  .categories h3 {
+      text-align: center;
+      margin-bottom: 40px;
+      color: #333;
+      font-size: 2em;
+      font-weight: 600;
+      position: relative;
+      padding-bottom: 15px;
+  }
+
+  .categories h3:after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(135deg,
+          {% if category == 'Electronics' %}#667eea
+          {% elif category == 'Books' %}#e74c3c
+          {% elif category == 'Grocery' %}#27ae60
+          {% else %}#e74c3c{% endif %},
+          {% if category == 'Electronics' %}#764ba2
+          {% elif category == 'Books' %}#f093fb
+          {% elif category == 'Grocery' %}#2ecc71
+          {% else %}#fa709a{% endif %});
+      border-radius: 2px;
+  }
+
+  /* 4 CARDS PER ROW - FIXED */
+  .products-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 25px;
+      padding: 20px;
+  }
+
+  .product-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: 1px solid #eee;
+  }
+
+  .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      border-color: #e0e0e0;
+  }
+
+  .product-image {
+      width: 100%;
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f8f9fa;
+      overflow: hidden;
+  }
+
+  .product-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+  }
+
+  .product-card:hover .product-image img {
+      transform: scale(1.03);
+  }
+
+  .product-info {
+      padding: 15px;
+      text-align: center;
+  }
+
+  .product-name {
+      font-size: 1.1em;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 8px;
+      line-height: 1.4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+  }
+
+  .product-price {
+      font-size: 1.2em;
+      color:
+          {% if category == 'Electronics' %}#667eea
+          {% elif category == 'Books' %}#e74c3c
+          {% elif category == 'Grocery' %}#27ae60
+          {% else %}#e74c3c{% endif %};
+      font-weight: bold;
+      margin: 10px 0;
+  }
+
+  .product-button {
+      width: 100%;
+      padding: 8px;
+      background:
+          {% if category == 'Electronics' %}#667eea
+          {% elif category == 'Books' %}#e74c3c
+          {% elif category == 'Grocery' %}#27ae60
+          {% else %}#e74c3c{% endif %};
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+      font-size: 0.85em;
+  }
+
+  .product-button:hover {
+      background:
+          {% if category == 'Electronics' %}#5a67d8
+          {% elif category == 'Books' %}#c0392b
+          {% elif category == 'Grocery' %}#219a52
+          {% else %}#c0392b{% endif %};
+      transform: translateY(-2px);
+  }
+
+  /* Modal Styles */
+  .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 999;
+      backdrop-filter: blur(3px);
+  }
+
+  .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 550px;
+      max-height: 85vh;
+      overflow-y: auto;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1000;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      animation: modalFadeIn 0.3s ease;
+  }
+
+  @keyframes modalFadeIn {
+      from {
+          opacity: 0;
+          transform: translate(-50%, -55%);
+      }
+      to {
+          opacity: 1;
+          transform: translate(-50%, -50%);
+      }
+  }
+
+  .close-btn {
+      position: absolute;
+      right: 15px;
+      top: 15px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #999;
+      background: rgba(0, 0, 0, 0.05);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.3s;
+      border: none;
+  }
+
+  .close-btn:hover {
+      color: #e84545;
+      background: rgba(0, 0, 0, 0.1);
+      transform: rotate(90deg);
+  }
+
+  .modal-image {
+      width: 100%;
+      height: 280px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+      object-fit: cover;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .modal-title {
+      font-size: 1.6em;
+      color: #2c3e50;
+      margin-bottom: 10px;
+      font-weight: 700;
+      text-align: center;
+  }
+
+  .rating {
+      color: #ffc107;
+      font-size: 1em;
+      margin-bottom: 10px;
+      text-align: center;
+      letter-spacing: 2px;
+  }
+
+  .modal-price {
+      font-size: 1.6em;
+      color:
+          {% if category == 'Electronics' %}#667eea
+          {% elif category == 'Books' %}#e74c3c
+          {% elif category == 'Grocery' %}#27ae60
+          {% else %}#e74c3c{% endif %};
+      font-weight: bold;
+      margin-bottom: 15px;
+      text-align: center;
+      padding: 8px 16px;
+      background: #f8f9fa;
+      border-radius: 40px;
+      display: inline-block;
+      width: auto;
+      margin-left: auto;
+      margin-right: auto;
+  }
+
+  #modalDescription {
+      color: #666;
+      margin-bottom: 20px;
+      line-height: 1.5;
+      font-size: 0.9em;
+      text-align: center;
+  }
+
+  .modal-section {
+      margin: 20px 0;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 12px;
+  }
+
+  .modal-section h4 {
+      color: #2c3e50;
+      margin-bottom: 12px;
+      font-size: 1em;
+      font-weight: 600;
+      border-left: 3px solid
+          {% if category == 'Electronics' %}#667eea
+          {% elif category == 'Books' %}#e74c3c
+          {% elif category == 'Grocery' %}#27ae60
+          {% else %}#e74c3c{% endif %};
+      padding-left: 12px;
+  }
+
+  .modal-section ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+  }
+
+  .modal-section li {
+      padding: 6px 0;
+      color: #555;
+      font-size: 0.85em;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #e9ecef;
+  }
+
+  .modal-section li:before {
+      content: "✓ ";
+      color: #27ae60;
+      font-weight: bold;
+      margin-right: 8px;
+  }
+
+  .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 20px;
+  }
+
+  .modal-btn {
+      padding: 10px;
+      border: none;
+      border-radius: 40px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+      font-size: 0.9em;
+  }
+
+  .modal-btn-primary {
+      background:
+          {% if category == 'Electronics' %}#667eea
+          {% elif category == 'Books' %}#e74c3c
+          {% elif category == 'Grocery' %}#27ae60
+          {% else %}#e74c3c{% endif %};
+      color: white;
+  }
+
+  .modal-btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .modal-btn-secondary {
+      background: #f0f0f0;
+      color: #666;
+      border: 1px solid #e0e0e0;
+  }
+
+  .modal-btn-secondary:hover {
+      background: #e0e0e0;
+  }
+
+  /* Responsive - 4 cards to 2 cards to 1 card */
+  @media (max-width: 1200px) {
+      .products-container {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 20px;
+      }
+  }
+
+  @media (max-width: 900px) {
+      .products-container {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 20px;
+      }
+  }
+
+  @media (max-width: 600px) {
+      .products-container {
+          grid-template-columns: 1fr;
+          gap: 20px;
+      }
+      .modal-content {
+          padding: 20px;
+      }
+      .modal-image {
+          height: 220px;
+      }
+      .modal-title {
+          font-size: 1.3em;
+      }
+      .modal-price {
+          font-size: 1.4em;
+      }
+      .modal-section ul {
+          grid-template-columns: 1fr;
+      }
+      .modal-actions {
+          grid-template-columns: 1fr;
+      }
+  }
+</style>
+
+<div class="items">
+  <div class="categories">
+    <h3>{{ category }}</h3>
+    <div class="products-container">
+      {% for product in products %}
+      <div
+        class="product-card"
+        data-id="{{ product.product_id }}"
+        data-name="{{ product.name }}"
+        data-price="{{ product.price }}"
+        data-image="{{ product.image_url }}"
+        data-rating="{{ product.rating }}"
+        data-description="{{ product.description }}"
+        data-features="{{ product.features }}"
+      >
+        <div class="product-image">
+          <img
+            src="{{ product.image_url }}"
+            alt="{{ product.name }}"
+            onerror="this.src='https://placehold.co/400x400/f0f0f0/333?text={{ product.name }}'"
+          />
+        </div>
+        <div class="product-info">
+          <div class="product-name">{{ product.name }}</div>
+          <div class="product-price">${{ "%.2f"|format(product.price) }}</div>
+          <button
+            class="product-button"
+            onclick="event.stopPropagation(); addToCart('{{ product.product_id }}', '{{ product.name }}', {{ product.price }}, '{{ category }}')"
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div id="productModal" class="modal">
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeModal()">&times;</button>
+    <img id="modalImage" class="modal-image" src="" alt="" />
+    <h2 class="modal-title" id="modalTitle"></h2>
+    <div class="rating" id="modalRating"></div>
+    <div class="modal-price" id="modalPrice"></div>
+    <p id="modalDescription" style="color: #666; margin-bottom: 20px"></p>
+    <div class="modal-section">
+      <h4>Key Features</h4>
+      <ul id="modalFeatures"></ul>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-primary" onclick="addFromModal()">
+        Add to Cart
+      </button>
+      <button class="modal-btn modal-btn-secondary" onclick="closeModal()">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentProduct = {};
+
+  document.querySelectorAll(".product-card").forEach((card) => {
+    card.addEventListener("click", function (e) {
+      if (e.target.classList.contains("product-button")) return;
+
+      const id = this.dataset.id;
+      const name = this.dataset.name;
+      const price = parseFloat(this.dataset.price);
+      const image = this.dataset.image;
+      const rating = parseFloat(this.dataset.rating);
+      const description = this.dataset.description;
+      const features = this.dataset.features;
+
+      openModal(id, image, name, price, rating, description, features);
+    });
+  });
+
+  function openModal(id, image, name, price, rating, description, features) {
+    currentProduct = { id, name, price, image, rating, description, features };
+    document.getElementById("modalImage").src = image;
+    document.getElementById("modalTitle").innerText = name;
+    document.getElementById("modalPrice").innerText = "$" + price.toFixed(2);
+
+    const fullStars = Math.floor(rating);
+    const emptyStars = 5 - fullStars;
+    document.getElementById("modalRating").innerHTML =
+      "★".repeat(fullStars) + "☆".repeat(emptyStars) + " (" + rating + "/5)";
+
+    document.getElementById("modalDescription").innerText = description;
+
+    const featuresList = document.getElementById("modalFeatures");
+    featuresList.innerHTML = "";
+
+    if (features && features !== "" && features !== "None") {
+      const featureArray = features.split(",");
+      for (let i = 0; i < featureArray.length; i++) {
+        if (featureArray[i].trim()) {
+          const li = document.createElement("li");
+          li.innerText = featureArray[i].trim();
+          featuresList.appendChild(li);
+        }
+      }
+    }
+
+    if (featuresList.children.length === 0) {
+      const defaultFeatures = [
+        "Premium Quality",
+        "Best Price",
+        "Fast Delivery",
+        "Secure Checkout",
+      ];
+      for (let i = 0; i < defaultFeatures.length; i++) {
+        const li = document.createElement("li");
+        li.innerText = defaultFeatures[i];
+        featuresList.appendChild(li);
+      }
+    }
+
+    document.getElementById("productModal").style.display = "block";
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeModal() {
+    document.getElementById("productModal").style.display = "none";
+    document.body.style.overflow = "auto";
+  }
+
+  function addFromModal() {
+    addToCart(
+      currentProduct.id,
+      currentProduct.name,
+      currentProduct.price,
+      "{{ category }}",
+    );
+    closeModal();
+  }
+
+  function addToCart(id, name, price, category) {
+    fetch("/add_to_cart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, name, price, category, quantity: 1 }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          alert(data.message || "✓ Item added to cart!");
+        } else {
+          alert("Error: " + (data.error || "Could not add to cart"));
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        alert("Error adding item to cart");
+      });
+  }
+
+  window.onclick = function (event) {
+    const modal = document.getElementById("productModal");
+    if (event.target === modal) {
+      closeModal();
+    }
+  };
+</script>
+{% endblock %}
