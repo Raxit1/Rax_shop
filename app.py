@@ -125,7 +125,7 @@ if products_count == 0:
     sample_products = [
         # Electronics
         ("PROD-ELEC-001", "iPhone 15 Pro", "Electronics", 999.99, "Latest flagship smartphone", "https://images.pexels.com/photos/404280/pexels-photo-404280.jpeg?w=400&h=400&fit=crop", 50, 4.9, "A17 Pro Chip,48MP Camera,Titanium Design"),
-        ("PROD-ELEC-002", "MacBook Air M2", "Electronics", 1099.99, "Powerful laptop with M2 chip", "https://images.pexels.com/photos/18105/pexels-photo.jpg?w=400&h=400&fit=crop", 30, 4.9, "M2 Chip,13.6 inch Display,18 Hour Battery"),
+        ("PROD-ELEC-002", "MacBook Air M2", "Electronics", 1099.99, "Powerful laptop", "https://images.pexels.com/photos/18105/pexels-photo.jpg?w=400&h=400&fit=crop", 30, 4.9, "M2 Chip,13.6 inch Display,18 Hour Battery"),
         ("PROD-ELEC-003", "Sony Headphones", "Electronics", 399.99, "Noise canceling headphones", "https://images.pexels.com/photos/3394650/pexels-photo-3394650.jpeg?w=400&h=400&fit=crop", 60, 4.8, "Noise Cancelling,30hr Battery"),
         
         # Books
@@ -224,25 +224,117 @@ def dashboard():
 def electronics():
     if "user" not in session:
         return redirect("/")
-    return render_template("electronics.html", user=session["user"])
+    
+    conn = get_db()
+    products = conn.execute("""
+        SELECT product_id, name, price, description, image_url, stock, rating, features
+        FROM products 
+        WHERE category = 'Electronics'
+        ORDER BY created_at DESC
+    """).fetchall()
+    conn.close()
+    
+    products_list = []
+    for p in products:
+        products_list.append({
+            'product_id': p[0],
+            'name': p[1],
+            'price': p[2],
+            'description': p[3],
+            'image_url': p[4],
+            'stock': p[5],
+            'rating': p[6],
+            'features': p[7] or ''
+        })
+    
+    return render_template("dynamic_category.html", user=session["user"], products=products_list, category="Electronics")
 
 @app.route("/books")
 def books():
     if "user" not in session:
         return redirect("/")
-    return render_template("books.html", user=session["user"])
+    
+    conn = get_db()
+    products = conn.execute("""
+        SELECT product_id, name, price, description, image_url, stock, rating, features
+        FROM products 
+        WHERE category = 'Books'
+        ORDER BY created_at DESC
+    """).fetchall()
+    conn.close()
+    
+    products_list = []
+    for p in products:
+        products_list.append({
+            'product_id': p[0],
+            'name': p[1],
+            'price': p[2],
+            'description': p[3],
+            'image_url': p[4],
+            'stock': p[5],
+            'rating': p[6],
+            'features': p[7] or ''
+        })
+    
+    return render_template("dynamic_category.html", user=session["user"], products=products_list, category="Books")
 
 @app.route("/grocery")
 def grocery():
     if "user" not in session:
         return redirect("/")
-    return render_template("grocery.html", user=session["user"])
+    
+    conn = get_db()
+    products = conn.execute("""
+        SELECT product_id, name, price, description, image_url, stock, rating, features
+        FROM products 
+        WHERE category = 'Grocery'
+        ORDER BY created_at DESC
+    """).fetchall()
+    conn.close()
+    
+    products_list = []
+    for p in products:
+        products_list.append({
+            'product_id': p[0],
+            'name': p[1],
+            'price': p[2],
+            'description': p[3],
+            'image_url': p[4],
+            'stock': p[5],
+            'rating': p[6],
+            'features': p[7] or ''
+        })
+    
+    return render_template("dynamic_category.html", user=session["user"], products=products_list, category="Grocery")
 
 @app.route("/fashion")
 def fashion():
     if "user" not in session:
         return redirect("/")
-    return render_template("fashion.html", user=session["user"])
+    
+    conn = get_db()
+    products = conn.execute("""
+        SELECT product_id, name, price, description, image_url, stock, rating, features
+        FROM products 
+        WHERE category = 'Fashion'
+        ORDER BY created_at DESC
+    """).fetchall()
+    conn.close()
+    
+    products_list = []
+    for p in products:
+        products_list.append({
+            'product_id': p[0],
+            'name': p[1],
+            'price': p[2],
+            'description': p[3],
+            'image_url': p[4],
+            'stock': p[5],
+            'rating': p[6],
+            'features': p[7] or ''
+        })
+    
+    return render_template("dynamic_category.html", user=session["user"], products=products_list, category="Fashion")
 
 @app.route("/cart")
 def cart():
