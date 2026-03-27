@@ -163,7 +163,7 @@
       width: 90%;
       max-width: 550px;
       position: fixed;
-      top: 50%;
+      top: 55%;
       left: 50%;
       transform: translate(-50%, -50%);
       padding: 25px;
@@ -286,7 +286,7 @@
       margin: 0;
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
+      gap: 8px;
   }
 
   .modal-features-list li {
@@ -479,11 +479,10 @@
 
       const features = this.dataset.features;
 
-      // Show only FIRST 2 FEATURES
+      // Show all features (they are already limited to 1-2 in your database)
       if (features && features !== "" && features !== "None") {
         const featureArray = features.split(",");
-        const maxFeatures = 2; // Change this to 1 if you want only 1 feature
-        for (let i = 0; i < Math.min(featureArray.length, maxFeatures); i++) {
+        for (let i = 0; i < featureArray.length; i++) {
           if (featureArray[i].trim()) {
             const li = document.createElement("li");
             li.textContent = featureArray[i].trim();
@@ -492,7 +491,7 @@
         }
       }
 
-      // If no features, show default 2 features
+      // If no features, show default features
       if (featuresList.children.length === 0) {
         const defaultFeatures = ["Premium Quality", "Best Price Guarantee"];
         for (let i = 0; i < defaultFeatures.length; i++) {
