@@ -144,6 +144,209 @@
       transform: translateY(-2px);
   }
 
+  /* Modal Styles */
+  .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 999;
+      backdrop-filter: blur(3px);
+  }
+
+  .modal-content {
+      background: white;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 550px;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 25px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      animation: modalFadeIn 0.3s ease;
+  }
+
+  @keyframes modalFadeIn {
+      from {
+          opacity: 0;
+          transform: translate(-50%, -55%);
+      }
+      to {
+          opacity: 1;
+          transform: translate(-50%, -50%);
+      }
+  }
+
+  .close-btn {
+      position: absolute;
+      right: 15px;
+      top: 15px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #999;
+      background: rgba(0, 0, 0, 0.05);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.3s;
+      border: none;
+  }
+
+  .close-btn:hover {
+      color: #e84545;
+      background: rgba(0, 0, 0, 0.1);
+      transform: rotate(90deg);
+  }
+
+  .modal-image {
+      width: 100%;
+      height: 280px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+      object-fit: cover;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .modal-title {
+      font-size: 1.6em;
+      color: #2c3e50;
+      margin-bottom: 10px;
+      font-weight: 700;
+      text-align: center;
+  }
+
+  .rating {
+      color: #ffc107;
+      font-size: 1em;
+      margin-bottom: 10px;
+      text-align: center;
+      letter-spacing: 2px;
+  }
+
+  .modal-price {
+      font-size: 1.6em;
+      color:
+          {% if category == 'Electronics' %}#667eea
+          {% elif category == 'Books' %}#e74c3c
+          {% elif category == 'Grocery' %}#27ae60
+          {% else %}#e74c3c{% endif %};
+      font-weight: bold;
+      margin-bottom: 15px;
+      text-align: center;
+      padding: 8px 16px;
+      background: #f8f9fa;
+      border-radius: 40px;
+      display: inline-block;
+      width: auto;
+      margin-left: auto;
+      margin-right: auto;
+  }
+
+  .modal-description {
+      color: #666;
+      margin-bottom: 20px;
+      line-height: 1.5;
+      font-size: 0.9em;
+      text-align: center;
+  }
+
+  .modal-section {
+      margin: 20px 0;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 12px;
+  }
+
+  .modal-section h4 {
+      color: #2c3e50;
+      margin-bottom: 12px;
+      font-size: 1em;
+      font-weight: 600;
+      border-left: 3px solid
+          {% if category == 'Electronics' %}#667eea
+          {% elif category == 'Books' %}#e74c3c
+          {% elif category == 'Grocery' %}#27ae60
+          {% else %}#e74c3c{% endif %};
+      padding-left: 12px;
+  }
+
+  .modal-features-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+  }
+
+  .modal-features-list li {
+      padding: 8px 0;
+      color: #555;
+      font-size: 0.9em;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid #e9ecef;
+  }
+
+  .modal-features-list li:before {
+      content: "✓ ";
+      color: #27ae60;
+      font-weight: bold;
+      margin-right: 10px;
+      font-size: 14px;
+  }
+
+  .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+  }
+
+  .modal-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 40px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+      font-size: 0.9em;
+  }
+
+  .modal-btn-primary {
+      background:
+          {% if category == 'Electronics' %}#667eea
+          {% elif category == 'Books' %}#e74c3c
+          {% elif category == 'Grocery' %}#27ae60
+          {% else %}#e74c3c{% endif %};
+      color: white;
+  }
+
+  .modal-btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .modal-btn-secondary {
+      background: #f0f0f0;
+      color: #666;
+      border: 1px solid #e0e0e0;
+  }
+
+  .modal-btn-secondary:hover {
+      background: #e0e0e0;
+  }
+
   /* Responsive */
   @media (max-width: 1200px) {
       .products-container {
@@ -160,6 +363,24 @@
   @media (max-width: 600px) {
       .products-container {
           grid-template-columns: 1fr;
+      }
+      .modal-content {
+          padding: 20px;
+      }
+      .modal-image {
+          height: 220px;
+      }
+      .modal-title {
+          font-size: 1.3em;
+      }
+      .modal-price {
+          font-size: 1.4em;
+      }
+      .modal-features-list {
+          grid-template-columns: 1fr;
+      }
+      .modal-actions {
+          flex-direction: column;
       }
   }
 </style>
@@ -202,102 +423,23 @@
   </div>
 </div>
 
-<div
-  id="productModal"
-  class="modal"
-  style="
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 999;
-  "
->
-  <div
-    class="modal-content"
-    style="
-      background: white;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 500px;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      padding: 20px;
-    "
-  >
-    <button
-      class="close-btn"
-      onclick="closeModal()"
-      style="
-        position: absolute;
-        right: 15px;
-        top: 10px;
-        font-size: 24px;
-        cursor: pointer;
-        background: none;
-        border: none;
-      "
-    >
-      &times;
-    </button>
-    <img
-      id="modalImage"
-      style="
-        width: 100%;
-        height: 250px;
-        object-fit: cover;
-        border-radius: 8px;
-        margin-bottom: 15px;
-      "
-    />
-    <h2 id="modalTitle" style="margin-bottom: 10px"></h2>
-    <div id="modalRating" style="color: #f39c12; margin-bottom: 10px"></div>
-    <div
-      id="modalPrice"
-      style="
-        font-size: 24px;
-        color: #e74c3c;
-        font-weight: bold;
-        margin-bottom: 15px;
-      "
-    ></div>
-    <p id="modalDescription" style="color: #666; margin-bottom: 15px"></p>
-    <div>
-      <h4>Key Features</h4>
-      <ul id="modalFeatures" style="list-style: none; padding: 0"></ul>
+<div id="productModal" class="modal">
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeModal()">&times;</button>
+    <img id="modalImage" class="modal-image" src="" alt="" />
+    <h2 class="modal-title" id="modalTitle"></h2>
+    <div class="rating" id="modalRating"></div>
+    <div class="modal-price" id="modalPrice"></div>
+    <p class="modal-description" id="modalDescription"></p>
+    <div class="modal-section">
+      <h4>✨ Key Features</h4>
+      <ul class="modal-features-list" id="modalFeatures"></ul>
     </div>
-    <div style="display: flex; gap: 10px; margin-top: 20px">
-      <button
-        onclick="addFromModal()"
-        style="
-          flex: 1;
-          padding: 10px;
-          background: #27ae60;
-          color: white;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-        "
-      >
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-primary" onclick="addFromModal()">
         Add to Cart
       </button>
-      <button
-        onclick="closeModal()"
-        style="
-          flex: 1;
-          padding: 10px;
-          background: #95a5a6;
-          color: white;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-        "
-      >
+      <button class="modal-btn modal-btn-secondary" onclick="closeModal()">
         Close
       </button>
     </div>
@@ -336,33 +478,26 @@
       featuresList.innerHTML = "";
 
       const features = this.dataset.features;
+
+      // Show only FIRST 2 FEATURES
       if (features && features !== "" && features !== "None") {
         const featureArray = features.split(",");
-        for (let i = 0; i < featureArray.length; i++) {
+        const maxFeatures = 2; // Change this to 1 if you want only 1 feature
+        for (let i = 0; i < Math.min(featureArray.length, maxFeatures); i++) {
           if (featureArray[i].trim()) {
             const li = document.createElement("li");
-            li.style.padding = "5px 0";
-            li.style.display = "flex";
-            li.style.alignItems = "center";
-            li.innerHTML = "✓ " + featureArray[i].trim();
+            li.textContent = featureArray[i].trim();
             featuresList.appendChild(li);
           }
         }
       }
 
+      // If no features, show default 2 features
       if (featuresList.children.length === 0) {
-        const defaultFeatures = [
-          "Premium Quality",
-          "Best Price",
-          "Fast Delivery",
-          "Secure Checkout",
-        ];
+        const defaultFeatures = ["Premium Quality", "Best Price Guarantee"];
         for (let i = 0; i < defaultFeatures.length; i++) {
           const li = document.createElement("li");
-          li.style.padding = "5px 0";
-          li.style.display = "flex";
-          li.style.alignItems = "center";
-          li.innerHTML = "✓ " + defaultFeatures[i];
+          li.textContent = defaultFeatures[i];
           featuresList.appendChild(li);
         }
       }
