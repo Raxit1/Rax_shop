@@ -695,6 +695,35 @@ def admin_products():
     
     return render_template("admin_products.html", admin_name=session["admin"], products=products)
 
+@app.route("/admin/delete_order/<order_id>", methods=["POST"])
+def admin_delete_order(order_id):
+    if "admin" not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    conn = get_db()
+    
+    try:
+        # Delete order items first (foreign key constraint)
+        conn.execute("DELETE FROM order_items WHERE order_id = ?", (order_id,))
+        
+        # Delete shipment records
+        conn.execute("DELETE FROM shipments WHERE order_id = ?", (order_id,))
+        
+        # Delete status history
+        conn.execute("DELETE FROM order_status_history WHERE order_id = ?", (order_id,))
+        
+        # Finally delete the order
+        conn.execute("DELETE FROM orders WHERE order_id = ?", (order_id,))
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({"success": True, "message": "Order deleted successfully!"})
+        
+    except Exception as e:
+        conn.close()
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/admin/add_product", methods=["POST"])
 def add_product():
     if "admin" not in session:

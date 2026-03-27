@@ -42,6 +42,9 @@
     text-decoration: none;
     display: inline-block;
     transition: 0.3s;
+    margin: 2px;
+    border: none;
+    cursor: pointer;
   }
 
   .btn-primary {
@@ -51,6 +54,16 @@
 
   .btn-primary:hover {
     background: #5a67d8;
+    color: white;
+  }
+
+  .btn-danger {
+    background: #e84545;
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background: #d63a3a;
     color: white;
   }
 
@@ -97,7 +110,7 @@
           <th>Status</th>
           <th>Date</th>
           <th>Tracking</th>
-          <th>Action</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -116,8 +129,14 @@
           <td>{{ order[6] if order[6] else 'N/A' }}</td>
           <td>
             <a href="/admin/orders/{{ order[0] }}" class="btn-sm btn-primary">
-              View Details
+              View
             </a>
+            <button
+              onclick="deleteOrder('{{ order[0] }}')"
+              class="btn-sm btn-danger"
+            >
+              Delete
+            </button>
           </td>
         </tr>
         {% endfor %}
@@ -125,4 +144,34 @@
     </table>
   </div>
 </div>
+
+<script>
+  function deleteOrder(orderId) {
+    if (
+      confirm(
+        "Are you sure you want to delete this order? This action cannot be undone!",
+      )
+    ) {
+      fetch(`/admin/delete_order/${orderId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            alert("Order deleted successfully!");
+            location.reload();
+          } else {
+            alert("Error: " + (data.error || "Could not delete order"));
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          alert("Error deleting order");
+        });
+    }
+  }
+</script>
 {% endblock %}

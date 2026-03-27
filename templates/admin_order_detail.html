@@ -124,18 +124,22 @@
     padding: 20px;
     background: #f8f9fa;
     border-radius: 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
   }
 
   .status-update h3 {
-    margin-bottom: 15px;
+    margin-bottom: 0;
     color: #333;
+    flex: 1;
   }
 
   .status-select {
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 6px;
-    margin-right: 10px;
     font-size: 14px;
   }
 
@@ -149,7 +153,18 @@
     transition: 0.3s;
   }
 
-  .update-status-btn:hover {
+  .delete-order-btn {
+    padding: 10px 20px;
+    background: #e84545;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .update-status-btn:hover,
+  .delete-order-btn:hover {
     transform: scale(1.05);
   }
 
@@ -227,11 +242,16 @@
     .info-grid {
       grid-template-columns: 1fr;
     }
-
     .order-header {
       flex-direction: column;
       text-align: center;
       gap: 15px;
+    }
+    .status-update {
+      flex-direction: column;
+    }
+    .status-update h3 {
+      margin-bottom: 10px;
     }
   }
 </style>
@@ -241,8 +261,7 @@
 
   <div class="order-header">
     <h2>
-      Order Details: {% if order and order|length > 1 %} {{ order[1] }} {% else
-      %} N/A {% endif %}
+      Order Details: {{ order[1] if order and order|length > 1 else 'N/A' }}
     </h2>
     <span
       class="order-status status-{{ order[12] if order and order|length > 12 else 'Processing' }}"
@@ -254,7 +273,7 @@
   <!-- Hidden input for order ID -->
   <input
     type="hidden"
-    id="hiddenOrderId"
+    id="orderId"
     value="{{ order[1] if order and order|length > 1 else '' }}"
   />
 
@@ -320,10 +339,9 @@
       </div>
       <div class="info-row">
         <span class="info-label">Total Amount:</span>
-        <span class="info-value"
-          >${{ "%.2f"|format(order[11] if order and order|length > 11 else 0)
-          }}</span
-        >
+        <span class="info-value">
+          ${{ "%.2f"|format(order[11] if order and order|length > 11 else 0) }}
+        </span>
       </div>
     </div>
 
@@ -400,6 +418,9 @@
     <button onclick="updateStatus()" class="update-status-btn">
       Update Status
     </button>
+    <button onclick="deleteCurrentOrder()" class="delete-order-btn">
+      Delete Order
+    </button>
   </div>
 
   {% if status_history %}
@@ -425,17 +446,8 @@
 
 <script>
   function updateStatus() {
-    const orderId = document.getElementById("hiddenOrderId").value;
+    const orderId = document.getElementById("orderId").value;
     const newStatus = document.getElementById("orderStatus").value;
-
-    console.log("Updating order:", orderId, "to status:", newStatus);
-
-    if (!orderId || orderId === "") {
-      alert(
-        "Error: Order ID not found. Please refresh the page and try again.",
-      );
-      return;
-    }
 
     fetch("/admin/update_order_status", {
       method: "POST",
@@ -450,16 +462,45 @@
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
-          alert("✅ " + data.message);
+          alert("Order status updated successfully!");
           location.reload();
         } else {
-          alert("❌ Error: " + (data.error || "Unknown error"));
+          alert("Error updating status: " + (data.error || "Unknown error"));
         }
       })
       .catch((error) => {
         console.error("Error:", error);
-        alert("❌ Error updating order status");
+        alert("Error updating order status");
       });
+  }
+
+  function deleteCurrentOrder() {
+    const orderId = document.getElementById("orderId").value;
+    if (
+      confirm(
+        "Are you sure you want to delete this order? This action cannot be undone!",
+      )
+    ) {
+      fetch(`/admin/delete_order/${orderId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            alert("Order deleted successfully!");
+            window.location.href = "/admin/orders";
+          } else {
+            alert("Error: " + (data.error || "Could not delete order"));
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          alert("Error deleting order");
+        });
+    }
   }
 </script>
 {% endblock %}
