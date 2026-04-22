@@ -1,183 +1,298 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Panel - Rax Shop</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin Panel - Rax Shop</title>
 
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background: #f5f7fb;
-      }
+<link
+href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+rel="stylesheet"
+/>
 
-      .admin-wrapper {
-        display: flex;
-        min-height: 100vh;
-      }
+<link
+rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+/>
 
-      .admin-sidebar {
-        width: 260px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        position: fixed;
-        height: 100vh;
-        overflow-y: auto;
-      }
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
 
-      .admin-sidebar .brand {
-        padding: 25px;
-        text-align: center;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        margin-bottom: 20px;
-      }
+body{
+font-family:Segoe UI, sans-serif;
+background:#f5f7fb;
+}
 
-      .admin-sidebar .brand h3 {
-        margin: 0;
-        font-size: 22px;
-      }
+/* layout */
+.admin-wrapper{
+display:flex;
+min-height:100vh;
+}
 
-      .admin-sidebar .brand p {
-        font-size: 12px;
-        opacity: 0.8;
-        margin: 5px 0 0;
-      }
+/* sidebar */
+.admin-sidebar{
+width:260px;
+background:linear-gradient(135deg,#667eea,#764ba2);
+color:#fff;
+position:fixed;
+top:0;
+left:0;
+height:100%;
+overflow-y:auto;
+transition:.3s;
+z-index:1000;
+}
 
-      .admin-sidebar .nav-item {
-        padding: 12px 25px;
-        transition: 0.3s;
-      }
+.admin-sidebar.hide{
+left:-260px;
+}
 
-      .admin-sidebar .nav-item:hover {
-        background: rgba(255, 255, 255, 0.1);
-      }
+.brand{
+padding:25px;
+text-align:center;
+border-bottom:1px solid rgba(255,255,255,.15);
+}
 
-      .admin-sidebar .nav-item a {
-        color: white;
-        text-decoration: none;
-        display: block;
-      }
+.brand h3{
+font-size:22px;
+margin:0;
+}
 
-      .admin-sidebar .nav-item i {
-        width: 25px;
-        margin-right: 10px;
-      }
+.brand p{
+font-size:13px;
+opacity:.8;
+margin-top:5px;
+}
 
-      .admin-content {
-        flex: 1;
-        margin-left: 260px;
-        padding: 20px;
-      }
+.nav-item a{
+display:block;
+padding:14px 25px;
+color:#fff;
+text-decoration:none;
+transition:.3s;
+}
 
-      .admin-header {
-        background: white;
-        padding: 15px 25px;
-        border-radius: 10px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        margin-bottom: 25px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
+.nav-item a:hover{
+background:rgba(255,255,255,.1);
+}
 
-      .admin-header h4 {
-        margin: 0;
-        color: #333;
-      }
+.nav-item i{
+width:25px;
+}
 
-      .admin-header .user-info {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-      }
+/* content */
+.admin-content{
+flex:1;
+margin-left:260px;
+padding:20px;
+transition:.3s;
+width:100%;
+}
 
-      .admin-header .user-name {
-        font-weight: 600;
-        color: #333;
-      }
+.admin-content.full{
+margin-left:0;
+}
 
-      .logout-btn {
-        background: #e84545;
-        color: white;
-        padding: 8px 15px;
-        border-radius: 6px;
-        text-decoration: none;
-        transition: 0.3s;
-      }
+/* topbar */
+.admin-header{
+background:#fff;
+padding:15px 20px;
+border-radius:12px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+box-shadow:0 2px 10px rgba(0,0,0,.05);
+gap:15px;
+flex-wrap:wrap;
+}
 
-      .logout-btn:hover {
-        background: #d63a3a;
-        color: white;
-      }
+.left-head{
+display:flex;
+align-items:center;
+gap:15px;
+}
 
-      @media (max-width: 768px) {
-        .admin-sidebar {
-          transform: translateX(-100%);
-          transition: 0.3s;
-          z-index: 1000;
-        }
-        .admin-sidebar.active {
-          transform: translateX(0);
-        }
-        .admin-content {
-          margin-left: 0;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="admin-wrapper">
-      <div class="admin-sidebar">
-        <div class="brand">
-          <h3><i class="fas fa-crown"></i> Admin Panel</h3>
-          <p>Rax Shop Management</p>
-        </div>
-        <div class="nav-item">
-          <a href="/admin/dashboard">
-            <i class="fas fa-tachometer-alt"></i> Dashboard
-          </a>
-        </div>
-        <div class="nav-item">
-          <a href="/admin/orders">
-            <i class="fas fa-shopping-cart"></i> Orders
-          </a>
-        </div>
-        <div class="nav-item">
-          <a href="/admin/products"> <i class="fas fa-box"></i> Products </a>
-        </div>
-        <div class="nav-item">
-          <a href="/admin/users"> <i class="fas fa-users"></i> Users </a>
-        </div>
-      </div>
+.menu-btn{
+width:42px;
+height:42px;
+border:none;
+background:#667eea;
+color:#fff;
+border-radius:8px;
+font-size:20px;
+cursor:pointer;
+display:none;
+}
 
-      <div class="admin-content">
-        <div class="admin-header">
-          <h4><i class="fas fa-chart-line"></i> Welcome, {{ admin_name }}!</h4>
-          <div class="user-info">
-            <span class="user-name">{{ admin_name }}</span>
-            <a href="/admin/logout" class="logout-btn">
-              <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-          </div>
-        </div>
+.user-info{
+display:flex;
+align-items:center;
+gap:12px;
+flex-wrap:wrap;
+}
 
-        {% block content %}{% endblock %}
-      </div>
-    </div>
+.logout-btn{
+background:#e84545;
+color:#fff;
+padding:8px 14px;
+border-radius:8px;
+text-decoration:none;
+}
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  </body>
+.logout-btn:hover{
+color:#fff;
+}
+
+/* overlay */
+.overlay{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.45);
+display:none;
+z-index:900;
+}
+
+.overlay.show{
+display:block;
+}
+
+/* mobile */
+@media(max-width:768px){
+
+.menu-btn{
+display:block;
+}
+
+.admin-sidebar{
+left:-260px;
+}
+
+.admin-sidebar.show{
+left:0;
+}
+
+.admin-content{
+margin-left:0;
+padding:15px;
+}
+
+.admin-header{
+padding:15px;
+}
+
+.admin-header h4{
+font-size:18px;
+}
+
+.user-info{
+width:100%;
+justify-content:space-between;
+}
+
+}
+
+/* small mobile */
+@media(max-width:480px){
+
+.admin-header{
+flex-direction:column;
+align-items:flex-start;
+}
+
+.user-info{
+width:100%;
+flex-direction:column;
+align-items:flex-start;
+}
+
+.logout-btn{
+width:100%;
+text-align:center;
+}
+
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<div class="admin-wrapper">
+
+<!-- Sidebar -->
+<div class="admin-sidebar" id="sidebar">
+
+<div class="brand">
+<h3><i class="fas fa-crown"></i> Admin Panel</h3>
+<p>Rax Shop Management</p>
+</div>
+
+<div class="nav-item">
+<a href="/admin/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a>
+</div>
+
+<div class="nav-item">
+<a href="/admin/orders"><i class="fas fa-shopping-cart"></i> Orders</a>
+</div>
+
+<div class="nav-item">
+<a href="/admin/products"><i class="fas fa-box"></i> Products</a>
+</div>
+
+<div class="nav-item">
+<a href="/admin/users"><i class="fas fa-users"></i> Users</a>
+</div>
+
+</div>
+
+<!-- Content -->
+<div class="admin-content" id="content">
+
+<div class="admin-header">
+
+<div class="left-head">
+<button class="menu-btn" onclick="toggleSidebar()">
+<i class="fas fa-bars"></i>
+</button>
+
+<h4><i class="fas fa-chart-line"></i> Welcome, {{ admin_name }}!</h4>
+</div>
+
+<div class="user-info">
+<span>{{ admin_name }}</span>
+
+<a href="/admin/logout" class="logout-btn">
+<i class="fas fa-sign-out-alt"></i> Logout
+</a>
+</div>
+
+</div>
+
+{% block content %}{% endblock %}
+
+</div>
+</div>
+
+<script>
+const sidebar = document.getElementById("sidebar");
+const overlay = document.getElementById("overlay");
+
+function toggleSidebar(){
+sidebar.classList.toggle("show");
+overlay.classList.toggle("show");
+}
+
+function closeSidebar(){
+sidebar.classList.remove("show");
+overlay.classList.remove("show");
+}
+</script>
+
+</body>
 </html>
